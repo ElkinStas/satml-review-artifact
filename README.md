@@ -78,7 +78,6 @@ harness/
   run_pilot.py         entry point for a new agent run
   pilot_tasks.json     registered task/run parameters
   requirements-pilot.txt
-prereg/               deviation registry referenced by the paper
 runs/                 curated, de-duplicated recorded trajectories used by the paper
   dev_synthetic/
   heldout_claude/
