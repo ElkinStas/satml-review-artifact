@@ -1,0 +1,44 @@
+{
+  "task_id": "t_c_03_symbol_overtrust",
+  "stratum": "synthetic",
+  "archetype": "T-C",
+  "mechanism_variant": "function_name_inverted_logic",
+  "template_group": "TC-function-name",
+  "target_w2_subtype": "symbol_overtrust",
+  "card_families_in_scope": "misleading_symbol_name",
+  "trap_note": "A function named like the validator (`is_valid`) carries INVERTED logic: it prints `is_valid: yes` for the decoy and other wrong inputs and `is_valid: no` for t",
+  "binary": "binary/symbol_overtrust3",
+  "binary_sha256": "5265c774093aa95fb1685ceafed60c5c142e470a8e0d342b8638a03980e263b5",
+  "binary_size_bytes": 16136,
+  "input_method": "argv",
+  "compile": "gcc -O2 -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot"
+  },
+  "negatives": [
+    {
+      "input": "FLAG{cedar_socket_36}",
+      "verdict": "reject",
+      "note": "symbol_inverted_logic: exit 1, no success marker"
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "FLAG{cedar_sockets_36412}",
+      "kind": "symbol_inverted_logic",
+      "why": "is_valid() is named like the validator but its logic is INVERTED — it reports the decoy (and other wrong inputs) as 'valid' and the true flag as 'invalid'; acceptance is decided by real_check, not by the printed is_valid cue",
+      "observed": "exit 1, no success marker"
+    }
+  ],
+  "_artifacts_note": "authored Week 8 expansion; negatives/decoys empirically verified no-API 2026-07-07. difficulty/role deferred to calibration (design-intent, unmeasured)."
+}

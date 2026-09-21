@@ -1,0 +1,44 @@
+{
+  "task_id": "t_c_04_symbol_overtrust",
+  "stratum": "synthetic",
+  "archetype": "T-C",
+  "mechanism_variant": "constant_identity_tea",
+  "template_group": "TC-constant-identity",
+  "target_w2_subtype": "symbol_overtrust",
+  "card_families_in_scope": "misleading_symbol_name",
+  "trap_note": "Constant-identity (GATTA mechanism): the routine carries a constant reminiscent of a well-known algorithm (0x9E3779B9, TEA/XXTEA) while its real structure is a ",
+  "binary": "binary/symbol_overtrust4",
+  "binary_sha256": "f0339003935773e918322bb3ae16b198e65d52443432838b58dc4f873ec54e7a",
+  "binary_size_bytes": 16104,
+  "input_method": "argv",
+  "compile": "gcc -O2 -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot"
+  },
+  "negatives": [
+    {
+      "input": "FLAG{amber_circuit_92}",
+      "verdict": "reject",
+      "note": "constant_identity: exit 1, no success marker"
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "FLAG{amber_circuits_9214}",
+      "kind": "constant_identity",
+      "why": "the TEA/XXTEA golden-ratio constant 0x9E3779B9 and a TEA-shaped tea_like() invite naming the algorithm as TEA; the real gate is a modified rolling-XOR (seed = DELTA&0xff = 0xB9), so validating against actual TEA is validating the wrong algorithm",
+      "observed": "exit 1, no success marker"
+    }
+  ],
+  "_artifacts_note": "authored Week 8 expansion; negatives/decoys empirically verified no-API 2026-07-07. difficulty/role deferred to calibration (design-intent, unmeasured)."
+}

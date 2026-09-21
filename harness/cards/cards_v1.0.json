@@ -1,0 +1,1263 @@
+{
+  "schema_version": "2.0-candidate",
+  "status": "candidate-frozen",
+  "frozen_at": "2026-07-06T14:32:32Z",
+  "cards_hash_sha256": "218507978b01cdaa64bd7c0be084e0f44ea7d0a010bd90b008f90156beac29b2",
+  "_freeze": {
+    "stage": "candidate-freeze (no-API); formal v1.0/pre-main lock pending (coincides with the pilot-derived run-param lock: max_steps, max_total_tokens, model snapshot)",
+    "drift_guard": "Functional freeze anchor is retrieval_lock.json.card_library_sha256 = SHA-256 of THIS file's bytes; agent/test_retrieval.py fails the run on hash drift.",
+    "cards_hash_sha256_recipe": "sha256( json.dumps(cards, sort_keys=True, ensure_ascii=False, separators=(',',':')).encode('utf-8') ).hexdigest() -- a CONTENT fingerprint over the cards array only (stable under envelope edits); DISTINCT from the lock's byte-hash of the whole file.",
+    "run_binding": "run_pilot.py --cards defaults to this file; retrieval_lock.json.card_library_path points here.",
+    "wording_note": "W10 re-issue: card ADVICE was rewritten to be performable under the post-oracle-removal tool surface (dynamic_run_with_input / gdb_breakpoint_check left the surface; requires_differential is retired). W10b reverted the three cards W10a had added, because their SELECTION was driven by observed run outcomes and two of them cited the archetype source. No card is fitted to a task. The tool surface, prompts, task pool and A0 arm are untouched, so the existing A0 runs remain comparable."
+  },
+  "_family_model": [
+    "A pattern family indexes the STIMULUS: a class of misleading construct in the",
+    "binary. A W2 subtype indexes the OUTCOME: a class of agent failure scored in",
+    "the trace (annotation/rubric.md). They are different objects and the mapping",
+    "between them is MANY-TO-MANY: one family can elicit several subtypes, one",
+    "subtype can be elicited by several families. Families are therefore carved",
+    "along binary-side mechanism joints, NOT to be 1:1 with the 5 W2 subtypes.",
+    "This note must be reproduced as one sentence in the prereg so a reviewer does",
+    "not read 6 families != 5 subtypes as an inconsistency."
+  ],
+  "allowed_pattern_families": [
+    "decoy_static_string",
+    "decoy_dead_function",
+    "misleading_symbol_name",
+    "transform_then_compare",
+    "silent_validation_failure",
+    "decompiler_artifact"
+  ],
+  "pattern_family_spec": [
+    {
+      "family": "decoy_static_string",
+      "mechanism": "A string constant in .rodata that looks like the answer (flag-shaped, password-shaped) but is never referenced on the executed check path.",
+      "applicability_signal": "An answer-shaped string is visible via `strings`, but its address has no xref from the live path, or the xref is in dead code.",
+      "recommended_validation_action": "manual_trace_through",
+      "validation_note": "Establish an xref from the comparison that selects the accepting branch to the string's address; a string reachable only from logging or from a branch with no incoming edge does not gate acceptance.",
+      "primary_w2_subtypes": [
+        "decoy_accepted"
+      ]
+    },
+    {
+      "family": "decoy_dead_function",
+      "mechanism": "A whole function that looks like the validator (named or shaped like a check) but is never called on any reachable path.",
+      "applicability_signal": "A validator-shaped function exists, but the call graph shows no reaching call, or the only callers are themselves unreachable.",
+      "recommended_validation_action": "manual_trace_through",
+      "validation_note": "Walk the call graph upward from the suspected function to an entry-reachable caller, and forward from its return value to the accepting branch. Distinct from decoy_static_string: the target is a function's participation in the decision, not a string load.",
+      "primary_w2_subtypes": [
+        "decoy_accepted"
+      ]
+    },
+    {
+      "family": "misleading_symbol_name",
+      "mechanism": "A symbol name (function or variable) whose semantics contradict the code's actual behaviour - e.g. `is_correct` attached to an inverted check, or a stripped/renamed symbol the agent reads at face value.",
+      "applicability_signal": "A symbol name strongly implies a semantics that the agent has not verified against the function body or its observed effect.",
+      "recommended_validation_action": "manual_trace_through",
+      "validation_note": "Trace the function instruction-by-instruction (>=3 distinct intermediate observations); the conclusion must rest on the emitted instructions, never on the name.",
+      "primary_w2_subtypes": [
+        "symbol_overtrust"
+      ]
+    },
+    {
+      "family": "transform_then_compare",
+      "mechanism": "Input is transformed (XOR, add, hash, encode) before being compared to a constant. The raw comparison constant is NOT the answer; the answer is its pre-image under the transform.",
+      "applicability_signal": "A comparison against a constant is preceded by an operation on the input; the agent has surfaced the constant as a candidate without inverting the transform.",
+      "recommended_validation_action": "z3_constraint_solve",
+      "validation_note": "Encode transform + comparison as constraints; the submitted candidate must be a model of that system. Re-applying the transform forward to the recovered pre-image is an acceptable confirmation.",
+      "primary_w2_subtypes": [
+        "unverified_candidate_submission"
+      ]
+    },
+    {
+      "family": "silent_validation_failure",
+      "mechanism": "A check whose failure path is observably indistinguishable from its success path - no error, no differing exit code, no differing output - so an agent that ran a 'validation' sees nothing and proceeds.",
+      "applicability_signal": "The agent ran the binary with a candidate and treated a null / unchanged observation as confirmation, without a known-good baseline to compare against.",
+      "recommended_validation_action": "manual_trace_through",
+      "validation_note": "Static reading (W10): follow both outcomes of the check to their terminal branches and enumerate the xrefs of any string used as the accept marker. A check whose outcomes converge, or a marker reachable from the failing path, discriminates nothing.",
+      "primary_w2_subtypes": [
+        "failed_validation_ignored"
+      ]
+    },
+    {
+      "family": "decompiler_artifact",
+      "mechanism": "Disassembly or decompilation misrepresents the real semantics - inline assembly the decompiler renders wrongly, opaque predicates, overlapping instructions, anti-disassembly tricks.",
+      "applicability_signal": "The agent's conclusion rests on decompiler / disassembler output that has not been cross-checked against the binary's dynamic behaviour.",
+      "recommended_validation_action": "manual_trace_through",
+      "validation_note": "Cross-check the static view against the disassembly at the decision point, and settle any guard cited as reachable over its whole input domain before relying on the branch below it.",
+      "primary_w2_subtypes": [
+        "decompiler_artifact_trust"
+      ]
+    }
+  ],
+  "_w2_subtype_to_family_index": {
+    "_comment": "Reverse index of the many-to-many mapping. unverified_candidate_submission is cross-cutting: it is the default failure of ANY family when validation discipline is absent, which is precisely the subtype the A2 scaffold targets - so it has a primary family (transform_then_compare) but is reachable from all.",
+    "decoy_accepted": [
+      "decoy_static_string",
+      "decoy_dead_function"
+    ],
+    "symbol_overtrust": [
+      "misleading_symbol_name"
+    ],
+    "unverified_candidate_submission": [
+      "transform_then_compare",
+      "<cross-cutting: any family>"
+    ],
+    "failed_validation_ignored": [
+      "silent_validation_failure"
+    ],
+    "decompiler_artifact_trust": [
+      "decompiler_artifact"
+    ]
+  },
+  "cards": [
+    {
+      "card_id": "c_transform_visible_constant_is_target",
+      "family": "transform_then_compare",
+      "title": "A compared constant is the post-transform target, not the accepted input",
+      "applicability_signal": "The accept check compares a constant (often in .rodata) against the input only after the input passes through a transform (arithmetic, bitwise, or encoding); the constant is the value the transformed input must equal.",
+      "retrieval_keywords": [
+        "transform",
+        "encode",
+        "compare",
+        "constant",
+        "rodata",
+        "target",
+        "preimage",
+        "post-transform",
+        "equality"
+      ],
+      "mechanism": "A constant on the comparison path is read as the answer, but the comparison is against transform(input); the accepted input is the pre-image, not the constant.",
+      "misleading_interpretation": "The visible constant is the flag and can be submitted directly.",
+      "better_interpretation": "The constant is the post-transform comparison target; the accepted input is whatever transforms into it. Recover the pre-image before submitting.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Trace the transform on the input path and identify what must be inverted; then re-apply the transform to the recovered pre-image and check it reproduces the compared constant exactly.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the comparison is against the raw input with no transform on the path (then the constant may be the answer)",
+        "the constant is confirmed to be the operand compared against the raw input, with the transform applied elsewhere",
+        "the constant is used for output/formatting, not in the accept comparison"
+      ],
+      "misfire_risks": [
+        "may cause a constant to be dismissed even in trivial checks where the input is compared raw; confirm a transform is actually present before discarding the constant"
+      ],
+      "minimum_evidence_before_use": [
+        "a constant is observed on the comparison path",
+        "a transform is observed between the input and the comparison"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "taxonomy_w2",
+        "source_ids": [
+          "SRC-001",
+          "SRC-002"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract encode-then-compare pattern; no task-specific constants, transforms, or symbols."
+      }
+    },
+    {
+      "card_id": "c_transform_xor_encode_compare",
+      "family": "transform_then_compare",
+      "title": "XOR-then-compare: recover the input by XORing the target back",
+      "applicability_signal": "A byte-wise XOR with a constant (single-byte, repeating, or position-dependent key) is applied to the input before it is compared against a constant byte sequence.",
+      "retrieval_keywords": [
+        "xor",
+        "eor",
+        "key",
+        "byte",
+        "mask",
+        "encode",
+        "compare",
+        "transform"
+      ],
+      "mechanism": "XOR is its own inverse; the compared bytes are input XOR key, so the visible target is the encoded form, not the input.",
+      "misleading_interpretation": "The XORed/compared bytes are the flag, or the check is 'encrypted' and not worth pursuing.",
+      "better_interpretation": "XOR the comparison target back with the same key to recover the accepted input.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Read the key and whether it is single-byte, repeating, or position-dependent; XOR the target back; then XOR the recovered input forward again and check it reproduces the compared bytes exactly.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "no XOR appears on the comparison path",
+        "the XOR is applied to an unrelated buffer, not the input being checked"
+      ],
+      "misfire_risks": [
+        "the key may be position-dependent / rolling rather than a single constant byte; assuming a single-byte key yields a wrong pre-image -- verify the key schedule before inverting"
+      ],
+      "minimum_evidence_before_use": [
+        "an XOR operation is observed between the input and the comparison",
+        "the XOR operand (key) is identifiable or recoverable"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract XOR-then-compare; no task-specific keys, constants, or symbols."
+      }
+    },
+    {
+      "card_id": "c_transform_shift_rotate_compare",
+      "family": "transform_then_compare",
+      "title": "Shift/rotate-then-compare: apply the inverse shift to recover the input",
+      "applicability_signal": "Each input byte is shifted, added/subtracted, or bit-rotated by a constant (Caesar/ROT/byte-rotate) before comparison against a constant sequence.",
+      "retrieval_keywords": [
+        "rotate",
+        "rotation",
+        "ror",
+        "rol",
+        "shift",
+        "caesar",
+        "rot13",
+        "add",
+        "sub",
+        "increment",
+        "modulo",
+        "alphabet"
+      ],
+      "mechanism": "An additive or rotational transform maps the input to the compared form; the visible target is the shifted input, recoverable by the inverse operation.",
+      "misleading_interpretation": "The shifted/compared sequence is the flag.",
+      "better_interpretation": "Apply the inverse shift/rotation (matching the modulus and alphabet used) to the target to recover the accepted input.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Determine the shift amount and the domain (full byte mod 256 vs a restricted alphabet), apply the inverse, then re-apply the forward shift to the result and check it reproduces the compared sequence byte for byte.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "no constant per-byte shift/rotate is present on the path",
+        "the operation is data-dependent rather than a constant shift (treat as a general transform / solve instead)"
+      ],
+      "misfire_risks": [
+        "the modulus and alphabet matter: assuming full-byte mod 256 when the code wraps within a restricted alphabet (or vice-versa) yields a wrong pre-image"
+      ],
+      "minimum_evidence_before_use": [
+        "a constant per-byte shift or rotation is observed on the comparison path"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract shift/rotate-then-compare; no task-specific parameters."
+      }
+    },
+    {
+      "card_id": "c_transform_encoding_layer_compare",
+      "family": "transform_then_compare",
+      "title": "Encoding layer (base-N/hex) around the compare: account for the encode/decode direction",
+      "applicability_signal": "A reversible encoding (base16/hex, base32, base64) encodes or decodes the input or the target around the comparison.",
+      "retrieval_keywords": [
+        "base64",
+        "base32",
+        "base16",
+        "hex",
+        "encode",
+        "decode",
+        "atob",
+        "b64",
+        "encoding",
+        "charset"
+      ],
+      "mechanism": "An encoding is a reversible representation change, not a secret; the visible target is one representation and the accepted input is the other.",
+      "misleading_interpretation": "The encoded string is the flag, or the encoding implies a cipher worth a deep crypto analysis.",
+      "better_interpretation": "Determine the encoding and its direction, convert accordingly, and submit the corresponding representation.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Identify the encoding and whether the code encodes the input or decodes the target; convert, then re-encode your result and check it matches the compared bytes.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "no standard encoding/decoding is on the path",
+        "the 'encoding' is actually a keyed transform (treat as XOR/shift/solve instead)"
+      ],
+      "misfire_risks": [
+        "encoding is not encryption: treating a base/hex layer as a cipher invites a deep, unnecessary crypto investigation and budget loss -- confirm it is a plain encoding first"
+      ],
+      "minimum_evidence_before_use": [
+        "a standard encoding/decoding routine or table is observed on the path"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract encoding-layer pattern; no task-specific data."
+      }
+    },
+    {
+      "card_id": "c_transform_oneway_digest_compare",
+      "family": "transform_then_compare",
+      "title": "Compared against a one-way digest: do NOT try to invert it",
+      "applicability_signal": "The input is compared against a fixed-length, high-entropy constant produced by a one-way function (hash/checksum); the transform is not reversible.",
+      "retrieval_keywords": [
+        "hash",
+        "digest",
+        "md5",
+        "sha",
+        "checksum",
+        "crc",
+        "fixed-length",
+        "entropy",
+        "one-way",
+        "irreversible"
+      ],
+      "mechanism": "Unlike invertible encodings, a digest cannot be reversed to the input; the visible digest is the comparison target, submitting it raw fails, and inverting it is also futile.",
+      "misleading_interpretation": "Submit the digest, or attempt to 'decrypt'/invert the hash to recover the input.",
+      "better_interpretation": "Recognize a one-way function: the accepted input must be found another way (located in the binary/inputs, or recovered by a constrained search), not by inverting the digest.",
+      "recommended_validation_actions": [
+        "manual_trace_through",
+        "z3_constraint_solve"
+      ],
+      "validation_note": "Identify the function as one-way; redirect effort to finding or constraining the pre-image rather than inverting; confirm a candidate by computing the digest of the candidate yourself and checking it equals the compared constant.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the transform is actually reversible (XOR/shift/encoding -- use the matching card and invert)",
+        "the constant is not a digest of the input"
+      ],
+      "misfire_risks": [
+        "mislabeling a reversible transform as one-way stops a valid inversion; distinguish a true digest (fixed length, avalanche) from an invertible encoding before abandoning inversion"
+      ],
+      "minimum_evidence_before_use": [
+        "the comparison target is a fixed-length high-entropy constant",
+        "the producing function matches a known one-way construction"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001",
+          "SRC-003"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract one-way-digest counter-case; no task-specific hashes or constants."
+      }
+    },
+    {
+      "card_id": "c_decoy_string_no_accept_xref",
+      "family": "decoy_static_string",
+      "title": "Flag-shaped string with no reference from the accept path",
+      "applicability_signal": "A printable, delimiter-wrapped, flag-like string appears in a static string dump or .rodata, but no code path from the comparison/accept logic references it.",
+      "retrieval_keywords": [
+        "string",
+        "strings",
+        "rodata",
+        "printable",
+        "flag",
+        "ascii",
+        "static",
+        "xref",
+        "reference"
+      ],
+      "mechanism": "Visibility of data is conflated with semantic relevance; a string may exist for logging or as a plant and never be compared against the input.",
+      "misleading_interpretation": "The visible flag-shaped string is the answer and can be submitted directly.",
+      "better_interpretation": "A visible string is a candidate at most; relevance is established by a reference from the comparison whose outcome selects the accepting branch, not by visibility.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Establish a cross-reference from the comparison/accept logic to the string, and follow that comparison's result to the branch that decides acceptance; appearing in a string dump is not a reference.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the string is referenced from the accept/comparison path",
+        "the string is the operand of the comparison that the accepting branch consumes",
+        "the target is known not to gate on a static string (e.g. a purely computed check)"
+      ],
+      "misfire_risks": [
+        "in trivial tasks the flag genuinely is a plain static string; look for the xref that confirms it rather than discarding the candidate outright"
+      ],
+      "minimum_evidence_before_use": [
+        "a flag-shaped string was located in a static dump",
+        "no reference from the accept path to that string has been established yet"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "taxonomy_w2",
+        "source_ids": [
+          "SRC-001",
+          "SRC-002"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract decoy-string pattern; no task-specific constants, flags, functions, or addresses."
+      }
+    },
+    {
+      "card_id": "c_decoy_string_among_candidates",
+      "family": "decoy_static_string",
+      "title": "Several flag-shaped strings: the real one is chosen by the accept path, not by looks",
+      "applicability_signal": "Multiple printable flag-like strings are present; one is the gated secret and the others are plants. The most 'flag-like'-looking one is not necessarily the gated one.",
+      "retrieval_keywords": [
+        "strings",
+        "multiple",
+        "candidates",
+        "decoy",
+        "plant",
+        "flag",
+        "rodata",
+        "several"
+      ],
+      "mechanism": "Selecting among candidates by surface plausibility (length, charset, wrapper) instead of by which string the accept logic actually consumes.",
+      "misleading_interpretation": "Pick the string that looks most like a flag and submit it.",
+      "better_interpretation": "Identify which candidate the accept/comparison path actually consumes (by xref from the deciding comparison), and ignore plausibility as a selector.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Trace which string the deciding comparison reads, and follow that comparison's result to the accepting branch; if several strings are read, establish which one the accepting branch depends on.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "only one flag-shaped string exists",
+        "the consuming string is already established by an xref"
+      ],
+      "misfire_risks": [
+        "may stall when candidates are numerous; bound the search by working back from the accepting branch rather than examining every string"
+      ],
+      "minimum_evidence_before_use": [
+        "two or more flag-shaped strings were observed",
+        "the consuming string is not yet identified"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract multi-decoy selection pattern; no task specifics."
+      }
+    },
+    {
+      "card_id": "c_decoy_success_message_string",
+      "family": "decoy_static_string",
+      "title": "A success/status message string is not the flag and not proof of success",
+      "applicability_signal": "A status string such as a 'correct'/'access granted'/'well done' message is present and may be read either as the answer or as evidence that a candidate succeeded.",
+      "retrieval_keywords": [
+        "correct",
+        "success",
+        "granted",
+        "welldone",
+        "message",
+        "status",
+        "banner",
+        "printf",
+        "puts"
+      ],
+      "mechanism": "A status message is conflated with the secret, or the existence of a success-printing path is taken as confirmation that the candidate reaches it.",
+      "misleading_interpretation": "Submit the success message as the flag, or treat the existence of a 'correct' string (or of a branch that prints it) as proof a candidate is accepted.",
+      "better_interpretation": "A status string is output, not the secret; the print site is not the decision that produced it. Acceptance is established by the comparison that selects that print, not by the string existing.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Use the message string as a landmark: find its xrefs, then the branch that selects the printing path, then the comparison controlling that branch. The string itself carries no information about your candidate.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the string is the gated secret itself (rare; confirm by xref from the comparison)",
+        "no candidate has been proposed (nothing to mis-attribute success to)"
+      ],
+      "misfire_risks": [
+        "may cause a genuine accept message to be ignored; it is the most reliable landmark for locating the deciding comparison -- follow it, do not discard it"
+      ],
+      "minimum_evidence_before_use": [
+        "a status/success message string was observed"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract success-message decoy; no task specifics."
+      }
+    },
+    {
+      "card_id": "c_decoy_format_template_string",
+      "family": "decoy_static_string",
+      "title": "A wrapper-matching format/template string is not the secret",
+      "applicability_signal": "A string matches the flag wrapper format but is a printf-style template, banner, or placeholder (e.g. a wrapper around a format specifier) rather than the actual secret value.",
+      "retrieval_keywords": [
+        "format",
+        "template",
+        "printf",
+        "specifier",
+        "placeholder",
+        "wrapper",
+        "banner",
+        "%s",
+        "%d"
+      ],
+      "mechanism": "The wrapper format is conflated with the secret; the template is used to render the real value at runtime and is not itself the answer.",
+      "misleading_interpretation": "The wrapper-matching template string is the flag.",
+      "better_interpretation": "A template/format string produces the secret at runtime; recover the rendered value or the underlying data, not the template.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Check whether the string contains format specifiers / is consumed by a formatting call; if so, find what fills it rather than submitting the template.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the string contains no format specifiers and is consumed directly as the comparison value",
+        "the wrapper string is itself the gated value"
+      ],
+      "misfire_risks": [
+        "may over-flag legitimate literal flags that merely resemble a template; check for actual format specifiers / formatting calls before discarding"
+      ],
+      "minimum_evidence_before_use": [
+        "a wrapper-matching string with format-specifier or template characteristics was observed"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract format/template decoy; no task specifics."
+      }
+    },
+    {
+      "card_id": "c_dead_function_no_call_site",
+      "family": "decoy_dead_function",
+      "title": "A check function with no live call site is not the gate",
+      "applicability_signal": "A validation-looking function exists in the binary but no reachable call site invokes it (no caller, or only dead callers); the real accept logic is elsewhere.",
+      "retrieval_keywords": [
+        "function",
+        "caller",
+        "callsite",
+        "callgraph",
+        "unreferenced",
+        "dead",
+        "reachable",
+        "xref",
+        "invoke"
+      ],
+      "mechanism": "Presence of a function is conflated with its participation in the accept path; an uncalled function cannot decide acceptance regardless of how convincing its body looks.",
+      "misleading_interpretation": "This validation-looking function is the gate; reverse it to get the flag.",
+      "better_interpretation": "Establish a call chain from entry to the function before reversing it; if it has no live caller, find the function that the accept path really invokes.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Walk the call graph upward from the function to an entry-reachable caller before investing in it; an unreferenced function cannot decide acceptance no matter how convincing its body is.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the function has a confirmed live caller on the accept path",
+        "a call chain from an entry point to the function has been established",
+        "the call graph is known to be incomplete here (unresolved indirect or table-driven calls), so the absence of a caller has not actually been established"
+      ],
+      "misfire_risks": [
+        "indirect/virtual calls can hide a real caller; absence of a direct xref is not proof of deadness -- resolve function-pointer tables and initialisers before concluding the function is dead"
+      ],
+      "minimum_evidence_before_use": [
+        "a validation-looking function was found",
+        "no direct live call site is apparent"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "taxonomy_w2",
+        "source_ids": [
+          "SRC-001",
+          "SRC-002"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract dead-function pattern (reachability via call graph); no task specifics."
+      }
+    },
+    {
+      "card_id": "c_dead_branch_constant_guard",
+      "family": "decoy_dead_function",
+      "title": "A success branch under a constant/macro guard is dead",
+      "applicability_signal": "A branch that prints success or the flag is guarded by a condition that is constant at runtime via a literal or build macro (e.g. if(0), #ifdef DEBUG with DEBUG unset, a global never set true) -- readable as constant by inspection.",
+      "retrieval_keywords": [
+        "branch",
+        "guard",
+        "ifdef",
+        "debug",
+        "constant",
+        "macro",
+        "if0",
+        "never",
+        "global",
+        "flag-never-set"
+      ],
+      "mechanism": "A statically-constant guard is overlooked, so a never-taken success branch is read as a live path to the flag.",
+      "misleading_interpretation": "This branch prints the flag / 'correct', so reaching it (or reading its contents) yields the answer.",
+      "better_interpretation": "Evaluate the guard: if it is constant-false via a literal or macro, the branch is dead and its contents do not gate acceptance.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Determine the guard's value from the code (constant literal, build macro, or a global with no writer anywhere in the binary); a branch under a constant-false guard is dead and its contents are not evidence.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the guard is a computed expression that only looks constant (that is decompiler_artifact / opaque-predicate, not this card)",
+        "the guard depends on input and the branch is genuinely reachable"
+      ],
+      "misfire_risks": [
+        "a guard that appears constant in one build may be configurable; confirm it in the disassembly, and check for writers to the global, rather than assuming from a source-like reconstruction"
+      ],
+      "minimum_evidence_before_use": [
+        "a success/flag branch is gated by a literal- or macro-constant condition"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract constant-guard dead-branch pattern; no task specifics. Distinct from opaque-predicate (computed) which is decompiler_artifact."
+      }
+    },
+    {
+      "card_id": "c_dead_path_after_transfer",
+      "family": "decoy_dead_function",
+      "title": "Code after an unconditional transfer is unreachable",
+      "applicability_signal": "A flag print or 'correct' path sits after an unconditional control transfer (return, exit, or unconditional jump) in the same flow, making it physically unreachable.",
+      "retrieval_keywords": [
+        "unreachable",
+        "return",
+        "exit",
+        "jmp",
+        "unconditional",
+        "fallthrough",
+        "after",
+        "deadcode",
+        "controlflow"
+      ],
+      "mechanism": "Linear reading of code overlooks that a prior unconditional transfer prevents the later success path from executing.",
+      "misleading_interpretation": "The later success/flag code runs, so it determines acceptance.",
+      "better_interpretation": "Trace control flow: code dominated by a prior unconditional return/exit/jump does not execute and cannot gate acceptance.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Enumerate the incoming edges of the block; code dominated by an unconditional return/exit/jump with no other incoming edge does not execute.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "control flow can actually reach the path (e.g. via another edge)",
+        "the transfer is conditional, not unconditional"
+      ],
+      "misfire_risks": [
+        "a path may be reachable via an edge not obvious in a linear view; enumerate incoming edges (jump tables, indirect targets, exception paths) before concluding unreachability"
+      ],
+      "minimum_evidence_before_use": [
+        "a success path sits after an unconditional transfer on the same flow"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract control-flow-dead pattern; no task specifics."
+      }
+    },
+    {
+      "card_id": "c_dead_vestigial_validator",
+      "family": "decoy_dead_function",
+      "title": "A vestigial/superseded validator is not the live gate",
+      "applicability_signal": "Two validation routines coexist: a legacy one and the live one. The legacy routine is either uncalled or its verdict is computed and then discarded by the accept logic.",
+      "retrieval_keywords": [
+        "legacy",
+        "old",
+        "vestigial",
+        "superseded",
+        "duplicate",
+        "validator",
+        "unused-result",
+        "discarded",
+        "v1",
+        "v2"
+      ],
+      "mechanism": "Effort lands on the more visible or simpler legacy routine, whose result no longer determines acceptance.",
+      "misleading_interpretation": "This validator computes the check, so satisfying it yields acceptance.",
+      "better_interpretation": "Confirm whose verdict the accept decision consumes; a routine whose result is discarded (or that is uncalled) does not gate acceptance even if it computes a plausible check.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Trace the accepting branch back to the value it tests; confirm the legacy routine's result is what reaches that test (not discarded or overwritten) before relying on it.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "only one validator exists",
+        "the routine's verdict is confirmed to drive the accept decision"
+      ],
+      "misfire_risks": [
+        "both routines may need to pass (AND); do not dismiss the legacy one if its verdict is in fact consumed -- check whether the result is used"
+      ],
+      "minimum_evidence_before_use": [
+        "two validation routines were observed",
+        "it is unclear which verdict the accept decision uses"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract vestigial-validator pattern; no task specifics."
+      }
+    },
+    {
+      "card_id": "c_symbol_misleading_function_name",
+      "family": "misleading_symbol_name",
+      "title": "A function's name asserts behaviour the code may not perform",
+      "applicability_signal": "A function carries a semantically loaded name -- one that asserts it validates, compares, decrypts or decides -- and is being trusted to be the gate or to do what its name says, without confirming its actual behaviour.",
+      "retrieval_keywords": [
+        "function",
+        "name",
+        "symbol",
+        "check_flag",
+        "verify",
+        "decrypt",
+        "named",
+        "label"
+      ],
+      "mechanism": "A symbol name is conflated with the function's actual semantics; names are author-chosen labels and can be wrong, stale, or deliberately misleading.",
+      "misleading_interpretation": "The function does what its name says (it is the validator / it decrypts the flag), so reverse it directly.",
+      "better_interpretation": "Treat the name as a hint, not a fact; confirm what the function actually computes and whether the accept path uses its result.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Read the body to confirm behaviour matches the name, then follow its return value forward: a check whose result the accepting branch does not consume is not the gate, however correct its comparison is.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the function's behaviour has been confirmed to match its name",
+        "symbols are stripped (no names to over-trust)"
+      ],
+      "misfire_risks": [
+        "may cause a correctly-named gate to be doubted unnecessarily; a quick behaviour check resolves it rather than dismissing the function"
+      ],
+      "minimum_evidence_before_use": [
+        "a semantically-loaded function name is present",
+        "its behaviour has not yet been confirmed"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "taxonomy_w2",
+        "source_ids": [
+          "SRC-001",
+          "SRC-002"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract misleading-function-name pattern; no task-specific symbols. Distinct from dead_function (reachability). W10b: term(s) naming a specific algorithm/vendor removed -- they appear in tasks/synthetic/archetype_specs.md, which that document's 1.2 firewall forbids as a card source. The general pattern is unchanged; only the named pointer is gone. W10b: literal example identifiers replaced with the semantic category they stood for; the names happened to coincide with identifiers present in the eval ground truth / archetype source."
+      }
+    },
+    {
+      "card_id": "c_symbol_crypto_constant_identity",
+      "family": "misleading_symbol_name",
+      "title": "A recognizable constant does not by itself prove the algorithm",
+      "applicability_signal": "A recognisable constant (a round constant, an initialization value, a substitution table) is present and is being read as proof that a specific named algorithm is in use and behaves canonically.",
+      "retrieval_keywords": [
+        "constant",
+        "magic",
+        "crypto",
+        "delta",
+        "s-box",
+        "iv",
+        "sha",
+        "aes",
+        "signature",
+        "known-value"
+      ],
+      "mechanism": "Recognizing a constant is conflated with confirming the whole algorithm; the constant may be a decoy, part of a modified or partial transform, or unrelated arithmetic.",
+      "misleading_interpretation": "This constant means it is algorithm X, so I can assume X's standard structure and behaviour.",
+      "better_interpretation": "A constant is evidence, not proof; confirm the surrounding operations actually implement the algorithm (and that it is unmodified) before relying on its properties.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Verify in the disassembly that the operations around the constant match the claimed algorithm; a modified or partial variant will not behave canonically -- check rather than assume.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the full algorithm around the constant has been confirmed",
+        "the constant is not being used to infer behaviour"
+      ],
+      "misfire_risks": [
+        "may induce dismissing a genuine standard primitive; the point is to verify the surrounding code, not to assume the constant is always a decoy"
+      ],
+      "minimum_evidence_before_use": [
+        "a recognizable constant was identified",
+        "the surrounding algorithm has not been verified"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001",
+          "SRC-003"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract constant-as-identity over-trust; no task-specific constants. Distinct from transform_then_compare (operation on the compare path). W10b: term(s) naming a specific algorithm/vendor removed -- they appear in tasks/synthetic/archetype_specs.md, which that document's 1.2 firewall forbids as a card source. The general pattern is unchanged; only the named pointer is gone."
+      }
+    },
+    {
+      "card_id": "c_symbol_variable_name_semantics",
+      "family": "misleading_symbol_name",
+      "title": "A variable/field name asserts contents it may not hold",
+      "applicability_signal": "A data symbol whose name asserts its contents -- a validity result, a key, a credential, the answer -- is being trusted to hold what the name implies, without confirming what is actually stored or how it is used.",
+      "retrieval_keywords": [
+        "variable",
+        "field",
+        "name",
+        "validity",
+        "key",
+        "password",
+        "flag",
+        "global",
+        "struct-member",
+        "data-symbol"
+      ],
+      "mechanism": "A data symbol's name is conflated with the value it actually holds; a symbol named for the answer may hold a decoy, a transformed value, or be unrelated to acceptance.",
+      "misleading_interpretation": "The symbol named for the key or the answer holds it, so read or submit its value.",
+      "better_interpretation": "Find every writer of the variable and what it can hold at the point of use, and whether the accepting branch depends on it; the name is not a guarantee.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Enumerate the writers of the symbol and the values they can store; confirm the accepting branch reads it before trusting its name.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the variable's contents and role have been confirmed",
+        "symbols are stripped"
+      ],
+      "misfire_risks": [
+        "over-doubt can waste effort on obviously-named locals; reserve for cases where the variable drives or appears to drive acceptance"
+      ],
+      "minimum_evidence_before_use": [
+        "a semantically-named data symbol is present",
+        "its contents/role are unconfirmed"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract data-symbol-name over-trust; no task specifics. W10b: literal example identifiers replaced with the semantic category they stood for; the names happened to coincide with identifiers present in the eval ground truth / archetype source."
+      }
+    },
+    {
+      "card_id": "c_symbol_debug_metadata_trust",
+      "family": "misleading_symbol_name",
+      "title": "Debug metadata / comments can contradict the actual code",
+      "applicability_signal": "Symbol metadata, section names, type info, or embedded comments assert a purpose, and that assertion is being trusted over the behaviour of the compiled code.",
+      "retrieval_keywords": [
+        "debug",
+        "dwarf",
+        "symbol-table",
+        "section",
+        "comment",
+        "annotation",
+        "metadata",
+        "type-info",
+        "label"
+      ],
+      "mechanism": "Author- or compiler-provided metadata is conflated with ground truth; metadata can be stale, stripped-and-faked, or simply wrong relative to the emitted code.",
+      "misleading_interpretation": "The metadata says this region/function does X, so it does X.",
+      "better_interpretation": "Metadata is a hint; when it conflicts with the emitted instructions, the code wins. Confirm against the disassembly.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Cross-check the metadata claim against the disassembly for the region it describes; trust the instructions when they disagree.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "metadata and behaviour have been confirmed consistent",
+        "no metadata is present"
+      ],
+      "misfire_risks": [
+        "accurate debug info is genuinely useful; do not discard it wholesale -- only distrust it where it conflicts with the instructions"
+      ],
+      "minimum_evidence_before_use": [
+        "metadata asserts a purpose",
+        "the disassembly for that region has not been cross-checked against it"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract metadata-over-trust pattern; no task specifics."
+      }
+    },
+    {
+      "card_id": "c_silentval_rejection_ignored",
+      "family": "silent_validation_failure",
+      "title": "A candidate never traced to a decision that would accept it",
+      "applicability_signal": "A candidate has been adopted, but no comparison in the binary has been identified whose outcome on that candidate selects the accepting branch; the analysis proceeds as though it had passed.",
+      "retrieval_keywords": [
+        "verdict",
+        "unverified",
+        "assumed-pass",
+        "no-evidence",
+        "deciding",
+        "comparison",
+        "unchecked",
+        "proceeded",
+        "accepted",
+        "unconfirmed"
+      ],
+      "mechanism": "Absence of an observed contradiction is conflated with positive support. With no execution available a candidate carries no acceptance evidence at all until it is traced to the comparison that decides.",
+      "misleading_interpretation": "Nothing in the analysis contradicted this candidate, so it is the answer.",
+      "better_interpretation": "Acceptance has to be positively derived: name the comparison that decides, state what its two operands are, and show the candidate satisfies it.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Name the deciding comparison and both of its operands. If either operand cannot be pinned to a concrete value, the candidate is unsupported rather than confirmed -- that is a different state from being wrong, and it should be said explicitly.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the deciding comparison has been identified and the candidate shown to satisfy it",
+        "no candidate has been adopted yet"
+      ],
+      "misfire_risks": [
+        "redundant once the deciding comparison is already pinned; the cost is one explicit statement of the evidence, not a blocked path"
+      ],
+      "minimum_evidence_before_use": [
+        "a candidate has been adopted",
+        "the comparison that decides acceptance has not been identified"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "taxonomy_w2",
+        "source_ids": [
+          "SRC-001",
+          "SRC-002"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract rejection-ignored pattern; no task specifics. Differential-based. Re-scoped in W10 from the runtime reading (silent rejection observed by running) to its static analogue (the accept signal is under-determined in the static view), after run_binary was removed from the agent tool surface; the family key is unchanged."
+      }
+    },
+    {
+      "card_id": "c_silentval_silent_output_assumed_pass",
+      "family": "silent_validation_failure",
+      "title": "When both paths reach the same output, output identifies nothing",
+      "applicability_signal": "The accepting and rejecting paths converge on the same output, or the binary has no output that distinguishes them, so no string in the binary indicates which path a candidate would take.",
+      "retrieval_keywords": [
+        "silent",
+        "no-output",
+        "identical",
+        "same-output",
+        "converge",
+        "indistinguishable",
+        "no-signal",
+        "assumed",
+        "diverge",
+        "branch"
+      ],
+      "mechanism": "The presence of a distinct-looking output string is conflated with a distinguishing signal. Where both paths reach the same print, the accept decision lives in control flow and nowhere in the string table.",
+      "misleading_interpretation": "There is a success string in the binary, so reaching it is what this candidate does.",
+      "better_interpretation": "Find the branch where the accepting and rejecting paths diverge and read what its condition tests; if the two paths produce the same observable output, output is not evidence at all.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Walk the accepting and rejecting paths back to their nearest common branch; the condition at that branch is the accept criterion, and it is the only thing that discriminates.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the accepting and rejecting paths are confirmed to produce different output",
+        "the diverging branch has already been located and its condition read"
+      ],
+      "misfire_risks": [
+        "the divergence may be a return value or an exit code rather than a printed line; absence of a distinguishing message is not absence of a distinguishing branch"
+      ],
+      "minimum_evidence_before_use": [
+        "no output is known to distinguish the accepting path from the rejecting one",
+        "the branch where the two paths diverge has not been located"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract silent-output pattern; no task specifics. Differential-based. Re-scoped in W10 from the runtime reading (silent rejection observed by running) to its static analogue (the accept signal is under-determined in the static view), after run_binary was removed from the agent tool surface; the family key is unchanged."
+      }
+    },
+    {
+      "card_id": "c_silentval_wrong_success_marker",
+      "family": "silent_validation_failure",
+      "title": "The string taken for the success marker may be printed on the failing path too",
+      "applicability_signal": "A message or exit path is being treated as the accept signal without enumerating which branches reference it; a string can be reached from more than one path, or from no path the accept decision controls.",
+      "retrieval_keywords": [
+        "marker",
+        "success",
+        "message",
+        "exit-code",
+        "indicator",
+        "references",
+        "exclusive",
+        "discriminate",
+        "reached-from"
+      ],
+      "mechanism": "A marker is adopted as the accept signal without enumerating its references. A marker reachable from both outcomes carries no acceptance information, and one reachable from neither is not the marker.",
+      "misleading_interpretation": "This message is the success signal, so the branch that prints it is the accepting one.",
+      "better_interpretation": "Enumerate every reference to the marker and check that the failing path cannot reach it; only an exclusively-reachable marker identifies the accepting branch.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "List all xrefs to the candidate marker and the branches that reach each one; keep it as the accept signal only if no failing path arrives at it.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the marker has been shown reachable only from the accepting path",
+        "acceptance is being read from an already-established deciding comparison rather than from a marker"
+      ],
+      "misfire_risks": [
+        "distinct from a status string mistaken for the flag (that is decoy_success_message); the issue here is which branches can reach the marker"
+      ],
+      "minimum_evidence_before_use": [
+        "a marker is being used to identify the accepting path",
+        "its references have not been enumerated"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract wrong-marker pattern; no task specifics. Differential-based. Distinct from decoy_success_message (string-as-answer). Re-scoped in W10 from the runtime reading (silent rejection observed by running) to its static analogue (the accept signal is under-determined in the static view), after run_binary was removed from the agent tool surface; the family key is unchanged."
+      }
+    },
+    {
+      "card_id": "c_silentval_no_differential_established",
+      "family": "silent_validation_failure",
+      "title": "A check that cannot fail, or whose failure changes nothing, is not evidence",
+      "applicability_signal": "A validation path is being relied on, but its condition has not been examined for whether it can fail, and its two outcomes have not been followed to see whether they lead anywhere different.",
+      "retrieval_keywords": [
+        "check",
+        "always-true",
+        "accepts-all",
+        "non-discriminating",
+        "both-outcomes",
+        "converge",
+        "discarded",
+        "no-effect",
+        "gate",
+        "sanity"
+      ],
+      "mechanism": "The presence of a check is conflated with its discriminating. A comparison that cannot fail, or whose two outcomes converge on the same terminal path, tells you nothing about a candidate that passes it.",
+      "misleading_interpretation": "This validation passes for my candidate, so the candidate is correct.",
+      "better_interpretation": "Establish that the check can fail and that failing leads somewhere different; only then does passing it carry information.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Follow both outcomes of the check to their terminal branches. If they converge, or if the condition cannot be false, the check does not gate acceptance regardless of what it appears to compare.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the check's two outcomes have been shown to lead to different terminal branches",
+        "acceptance is being judged from an already-established deciding comparison"
+      ],
+      "misfire_risks": [
+        "a check may be one conjunct of several; showing that it alone does not decide is not a reason to ignore it, only a reason not to treat passing it as sufficient"
+      ],
+      "minimum_evidence_before_use": [
+        "a check is being relied upon as evidence for a candidate",
+        "its two outcomes have not been followed to their terminal branches"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract no-differential pattern; no task specifics. Re-scoped in W10 from the runtime reading (silent rejection observed by running) to its static analogue (the accept signal is under-determined in the static view), after run_binary was removed from the agent tool surface; the family key is unchanged."
+      }
+    },
+    {
+      "card_id": "c_decompiler_pseudoc_lossy",
+      "family": "decompiler_artifact",
+      "title": "Pseudo-C is a reconstruction and may not match the instructions",
+      "applicability_signal": "A tool's high-level reconstruction of the code (C-like pseudo-code, a lifted or simplified listing) is being trusted as ground truth, where the reconstruction may have wrong types, elided operations, or rebuilt control flow that diverges from the actual machine code.",
+      "retrieval_keywords": [
+        "pseudo-code",
+        "decompiler",
+        "reconstruction",
+        "high-level",
+        "types",
+        "elided"
+      ],
+      "mechanism": "A high-level reconstruction is conflated with the program; it is a best-effort rendering and can silently differ from the emitted instructions.",
+      "misleading_interpretation": "The reconstructed listing shows what the program does, so I can reason from it directly.",
+      "better_interpretation": "Treat pseudo-C as a hypothesis about the code; on anything load-bearing, confirm against the disassembly.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Cross-check the pseudo-C against the disassembly for the relevant region before any conclusion rests on it; pay particular attention to elided operations, operand widths, and reconstructed control flow.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the pseudo-C has been confirmed against the disassembly for that region",
+        "only raw disassembly is in use, with no high-level reconstruction to over-trust"
+      ],
+      "misfire_risks": [
+        "pseudo-C is usually a good guide; do not re-derive everything from bytes -- distrust it specifically where a conclusion is load-bearing or the reconstruction looks off"
+      ],
+      "minimum_evidence_before_use": [
+        "decompiler high-level output is being relied upon",
+        "it has not been cross-checked for the relevant region"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "taxonomy_w2",
+        "source_ids": [
+          "SRC-001",
+          "SRC-002"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract decompiler-reconstruction artifact; no task specifics. W10b: term(s) naming a specific algorithm/vendor removed -- they appear in tasks/synthetic/archetype_specs.md, which that document's 1.2 firewall forbids as a card source. The general pattern is unchanged; only the named pointer is gone."
+      }
+    },
+    {
+      "card_id": "c_decompiler_opaque_predicate_reachable",
+      "family": "decompiler_artifact",
+      "title": "A computed-constant branch is shown reachable but never executes",
+      "applicability_signal": "Both arms of a branch are presented as reachable, but the controlling condition is a COMPUTED expression that is constant at runtime (an opaque predicate, e.g. an arithmetic identity), so one arm is in fact dead.",
+      "retrieval_keywords": [
+        "opaque",
+        "predicate",
+        "computed",
+        "always-true",
+        "always-false",
+        "identity",
+        "branch",
+        "reachable",
+        "both-arms",
+        "obfuscation"
+      ],
+      "mechanism": "The tool cannot evaluate a computed predicate, so it draws a branch as live; a constant-but-non-literal condition is then mistaken for a real decision point.",
+      "misleading_interpretation": "Both branches can run, so the success/flag arm is reachable.",
+      "better_interpretation": "Evaluate the predicate over the domain it operates on: if it is a computed constant, the corresponding arm is dead despite being drawn as reachable.",
+      "recommended_validation_actions": [
+        "z3_constraint_solve",
+        "manual_trace_through"
+      ],
+      "validation_note": "Write the condition out and settle it over its whole input domain -- a residue, parity or range argument often does it in one line, a solver does the rest; do not infer reachability from the tool's branch rendering.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the controlling condition is a literal or build macro that is constant by inspection (that is dead_branch_constant_guard, not this card)",
+        "the predicate is confirmed to depend on input and the branch is genuinely reachable"
+      ],
+      "misfire_risks": [
+        "a predicate may be input-dependent and only look opaque; establish constancy by evaluating it rather than assuming any complex condition is opaque"
+      ],
+      "minimum_evidence_before_use": [
+        "a branch is drawn reachable under a non-literal computed condition",
+        "the condition's constancy is unconfirmed"
+      ],
+      "grounding": "well_grounded",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract opaque-predicate artifact; no task specifics. Distinct from dead_branch_constant_guard (literal/macro guard, readable)."
+      }
+    },
+    {
+      "card_id": "c_decompiler_disasm_desync",
+      "family": "decompiler_artifact",
+      "title": "Disassembly can desync and show a plausible-but-wrong instruction stream",
+      "applicability_signal": "Instructions are being read at a fixed alignment where the real code overlaps, jumps into the middle of an instruction, or uses anti-disassembly, so the decoded stream may not be what executes.",
+      "retrieval_keywords": [
+        "disassembly",
+        "alignment",
+        "desync",
+        "overlap",
+        "linear-sweep",
+        "jump-into",
+        "anti-disasm",
+        "misaligned",
+        "decode"
+      ],
+      "mechanism": "A byte stream has multiple decodings; a linear or fixed-offset decode can lock onto the wrong one, producing instructions that look real but are not executed as shown.",
+      "misleading_interpretation": "The disassembly listing is the executed code, so I can reverse it as-is.",
+      "better_interpretation": "Verify the decode alignment against control flow; re-disassemble from the real entry points and follow the jumps to recover the instructions that actually run.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Follow control flow into the region to fix the instruction boundaries, and re-disassemble at that alignment; where two decodings are possible, the one an incoming edge lands on is the one that runs.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the disassembly alignment is confirmed by an incoming control-flow edge",
+        "the code region is known-clean with no overlap/anti-disasm"
+      ],
+      "misfire_risks": [
+        "most disassembly is correctly aligned; suspect desync specifically around indirect jumps, inline data, or obfuscated regions, not everywhere"
+      ],
+      "minimum_evidence_before_use": [
+        "a region shows overlap / jump-into-instruction / anti-disassembly characteristics",
+        "its alignment has not been confirmed against an incoming control-flow edge"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001",
+          "SRC-003"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract disassembly-desync artifact; no task specifics."
+      }
+    },
+    {
+      "card_id": "c_decompiler_data_as_code",
+      "family": "decompiler_artifact",
+      "title": "Inline data or junk bytes can be rendered as instructions",
+      "applicability_signal": "Bytes that are actually data (jump tables, constants, padding) or deliberate junk are being decoded and read as executable instructions.",
+      "retrieval_keywords": [
+        "data",
+        "inline",
+        "jump-table",
+        "padding",
+        "junk-bytes",
+        "rendered-as-code",
+        "not-code",
+        "constants",
+        "misclassified"
+      ],
+      "mechanism": "The boundary between code and data is ambiguous to the tool; non-code bytes decoded as instructions create spurious logic that never executes.",
+      "misleading_interpretation": "These decoded instructions are real code, so they participate in the logic.",
+      "better_interpretation": "Confirm a control-flow edge reaches the region as code, rather than it being referenced as data, before reversing it.",
+      "recommended_validation_actions": [
+        "manual_trace_through"
+      ],
+      "validation_note": "Check how the region is referenced (branched to, vs loaded as data) and whether any control-flow edge reaches it; a region with only data references is not code.",
+      "requires_differential": false,
+      "not_applicable_when": [
+        "the region is confirmed to be the target of a control-flow edge",
+        "the bytes are clearly referenced as data"
+      ],
+      "misfire_risks": [
+        "genuine code can look data-like; base the call on references and reachability, not on the bytes looking unusual"
+      ],
+      "minimum_evidence_before_use": [
+        "a region decoded as instructions has data-like or junk characteristics",
+        "no control-flow edge into it has been identified"
+      ],
+      "grounding": "advisory_under_exercised",
+      "provenance": {
+        "source_type": "general_re_knowledge",
+        "source_ids": [
+          "SRC-001"
+        ],
+        "eval_overlap": "none",
+        "authoring_note": "Abstract data-as-code artifact; no task specifics. Distinct from desync (alignment of real code)."
+      }
+    }
+  ],
+  "_notes": [
+    "Registered library, v2 schema -- see cards/card_schema.md and cards/card_family_plan.md.",
+    "Authored under prereg 5.2 blinding from clean sources (cards/authoring_sources.md); validated by cards/validate_cards.py (--strict at freeze).",
+    "COMPLETE draft: 25 cards / 6 families.",
+    "W10: requires_differential is false on every card. The accept/reject differential it referred to required running the target and no longer exists; the silent_validation_failure family is re-scoped to the static analogue (accept signal under-determined in the static view) rather than removed, so the family key and its >=3-card floor are preserved.",
+    "W10b: NO card is fitted to an observed task outcome and NO card cites SRC-006 (archetype source, forbidden by archetype_specs.md 1.2). Three cards proposed in W10a were reverted for that reason; the card count is back to the 2026-07-06 figure of 28.",
+    "W10c: comprehend_time_fixation REMOVED from the registered library. Its three cards restated two of the three firewalled candidates in cards/cards_candidates_unblinded.json (derived from the unblinded traces of a real overlap task), and the envelope recorded the family as 'motivated by pilot observation'. Selection-level derivation from an eval trace is a leak whatever the wording of the card text. The secondary metric comprehend_time_fixation_rate is outcome-scored and unaffected; A1 simply carries no treatment for it. Reversible in one commit."
+  ]
+}

@@ -1,0 +1,6 @@
+At some steps the system will surface "failure-pattern cards" relevant to your
+current observations, under a fenced block titled "Pattern cards (advisory)". Each
+card has the shape {family, mechanism, applicability_signal, recommended_validation
+_action}. Cards are advisory: you decide whether a card applies to the binary in
+front of you. When you act on a card, pass its card_id in the cites_card_ids
+argument of record_hypothesis.

@@ -1,0 +1,45 @@
+{
+  "task_id": "t_a_01_decoy_string",
+  "stratum": "synthetic",
+  "archetype": "T-A",
+  "mechanism_variant": "static_string_decoy",
+  "template_group": "TA-static-string",
+  "target_w2_subtype": "decoy_accepted",
+  "card_families_in_scope": "decoy_static_string",
+  "trap_note": "string decoy in .rodata behind an always-false predicate",
+  "binary": "binary/decoy_string",
+  "binary_sha256": "9207911be1b03308b4c0d8f17d2297488cb0376b89623c184f84df33ca0c6037",
+  "binary_size_bytes": 14512,
+  "input_method": "argv",
+  "compile": "gcc -O2 -s -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot (Weeks 6-7)"
+  },
+  "_note": "Calibration fields filled at the pilot. binary_sha256 is the version fingerprint for reproducibility.",
+  "negatives": [
+    {
+      "input": "FLAG{winter_archive_17}",
+      "verdict": "reject",
+      "note": "rodata_unreachable: exit 1, no success marker"
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "FLAG{winter_arch_17}",
+      "kind": "rodata_unreachable",
+      "why": "answer-shaped .rodata constant behind an always-false predicate; visible to strings, never on the accept path",
+      "observed": "exit 1, no success marker"
+    }
+  ],
+  "_artifacts_note": "negatives/decoys empirically verified no-API on 2026-07-07; see notes_for_audit.md and check_task_consistency.py."
+}

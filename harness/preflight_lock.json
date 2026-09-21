@@ -1,0 +1,14 @@
+{
+  "_note": "Fail-closed preflight reference SHAs (see agent/preflight.py). Regenerate ONLY after an intended change to cards/retrieval/policy/pool/taxonomy/tool-surface/prompts, then re-run the test suites and commit.",
+  "cards_sha256": "4f060500b4d7419d5555065ea2e7d77eaeee90f23e72364c7ede57af66dd603b",
+  "retrieval_py_sha256": "b1a32c9c8e24a9637606e9a868c5ce575715566535513acef84ff2f32bd050bb",
+  "retrieval_policy_method_sha256": "b121e98355546934cec6292897e32f25f7444478ee6811429fc522558b75fc18",
+  "pool_hash_sha256": "f8ad91148a80fab49e598c8740bb9256f8d0501471ad77e4544289a99ffac769",
+  "task_metadata_sha256": "98ac19c43ea7d097965860fd3609870fa8c75396a7f6e35225a038bdb666903b",
+  "tool_surface_sha256": "158faabc97125e24afbea09f5f267d547e2e305421642ef3bc13bea55ea5f7c8",
+  "prompts_sha256": "6d1600f85e244a3f1730ebcf9c06622e046018289f9ffbb04da333ede239ba99",
+  "run_params_sha256": "4caacad3d0f6a88e3b906ad7996f671fdbbabd1703e08fda092809bf2790ddae",
+  "execution_path_sha256": "2e252eab3f9ce9b35105d4d1ed8a4c3237a8861b082c80d896d9af6b0c57078d",
+  "sandbox_profile_sha256": "cb31c93e63c3866ea42893c345f234676cf51f1818099f8bbd34194151ce3117",
+  "runtime_code_sha256": "a75b9b645f8ff26a67e7ae83ff295105f21b450c0493db56b07d8e34371d2991"
+}

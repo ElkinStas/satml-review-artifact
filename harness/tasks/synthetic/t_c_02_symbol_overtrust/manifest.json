@@ -1,0 +1,49 @@
+{
+  "task_id": "t_c_02_symbol_overtrust",
+  "stratum": "synthetic",
+  "archetype": "T-C",
+  "mechanism_variant": "function_name_fake_positive",
+  "template_group": "TC-function-name",
+  "target_w2_subtype": "symbol_overtrust",
+  "card_families_in_scope": "misleading_symbol_name",
+  "trap_note": "check_license() prints 'valid' for the decoy but parse_header() is the real gate.",
+  "binary": "binary/symbol_overtrust2",
+  "binary_sha256": "8519f56ff4250e104b28c0fcaf9d968898d71c2ffc95586031d7507960b9d80c",
+  "binary_size_bytes": 16176,
+  "input_method": "argv",
+  "compile": "gcc -O2 -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "run_params_for_pilot_tasks_json": {
+    "success_marker": "Correct.",
+    "fail_marker": "Wrong."
+  },
+  "leakage_note": "Built from archetype_specs.md (T-C), taxonomy-level; not from the matching card.",
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot (Weeks 6-7)"
+  },
+  "negatives": [
+    {
+      "input": "FLAG{maple_station_74}",
+      "verdict": "reject",
+      "note": "symbol_matched: exit 1, no success marker"
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "FLAG{maple_stations_741}",
+      "kind": "symbol_matched",
+      "why": "matched only by check_license(), a misleadingly-named function; real acceptance is decided by parse_header()",
+      "observed": "exit 1, no success marker"
+    }
+  ],
+  "_artifacts_note": "negatives/decoys empirically verified no-API on 2026-07-07; see notes_for_audit.md and check_task_consistency.py."
+}

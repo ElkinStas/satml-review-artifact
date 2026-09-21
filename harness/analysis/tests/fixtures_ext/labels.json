@@ -1,0 +1,43 @@
+{
+ "labels": [
+  {
+   "task_id": "t_a_01_decoy_string",
+   "arm": "A1",
+   "attempt_id": "a1",
+   "w2_events": {
+    "decoy_accepted": false,
+    "unverified_candidate_submission": false,
+    "symbol_overtrust": false,
+    "failed_validation_ignored": false,
+    "decompiler_artifact_trust": false
+   },
+   "comprehend_time_fixation": false
+  },
+  {
+   "task_id": "t_b_01_transform_compare",
+   "arm": "A1",
+   "attempt_id": "a1",
+   "w2_events": {
+    "decoy_accepted": false,
+    "unverified_candidate_submission": false,
+    "symbol_overtrust": false,
+    "failed_validation_ignored": false,
+    "decompiler_artifact_trust": true
+   },
+   "comprehend_time_fixation": true
+  },
+  {
+   "task_id": "t_a_02_decoy_function",
+   "arm": "A0",
+   "attempt_id": "a1",
+   "w2_events": {
+    "decoy_accepted": false,
+    "unverified_candidate_submission": false,
+    "symbol_overtrust": false,
+    "failed_validation_ignored": false,
+    "decompiler_artifact_trust": false
+   },
+   "comprehend_time_fixation": false
+  }
+ ]
+}

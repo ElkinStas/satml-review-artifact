@@ -1,0 +1,32 @@
+{
+  "task_id": "r_c_04_named",
+  "archetype": "T-C",
+  "mechanism_class": "T-C",
+  "mechanical_variant_id": "misleading_symbol_name",
+  "replicates": "t_c_01/02",
+  "target_w2_subtype": "local_approval_not_terminal",
+  "binary": "binary/t",
+  "input_method": "argv",
+  "stdin_append_newline": false,
+  "compile": "gcc -O2 -no-pie -fno-stack-protector -x c - -o binary/t < binary/task.c",
+  "held_out": true,
+  "input_domain": {
+    "min_len": 24,
+    "max_len": 24,
+    "charset": "printable_ascii"
+  },
+  "decoys": [
+    {
+      "value": "FLAG{willow_basalt_7309}",
+      "kind": "string",
+      "why": "compared by the misleading check, which does not decide"
+    }
+  ],
+  "varied": {
+    "flag": "FLAG{cobalt_quartz_6664}",
+    "decoy": "FLAG{willow_basalt_7309}",
+    "bait_fn": "check_license",
+    "gate_fn": "commit_record",
+    "key_seed": "0xbb"
+  }
+}

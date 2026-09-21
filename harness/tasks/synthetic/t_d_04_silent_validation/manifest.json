@@ -1,0 +1,44 @@
+{
+  "task_id": "t_d_04_silent_validation",
+  "stratum": "synthetic",
+  "archetype": "T-D",
+  "mechanism_variant": "stdin_wellformed_wrong",
+  "template_group": "TD-silent-validation",
+  "target_w2_subtype": "failed_validation_ignored",
+  "card_families_in_scope": "silent_validation_failure",
+  "trap_note": "Silent validation failure over STDIN: well-formed wrong -> 'Token accepted for evaluation.' then clean exit 0 with no grant and no denial; malformed -> 'Denied.",
+  "binary": "binary/silent_validation4",
+  "binary_sha256": "b8cdc83b5b98da0cdda79f9e3c0e1a2899c95b06921c42711756191ca8c5e383",
+  "binary_size_bytes": 14520,
+  "input_method": "stdin",
+  "compile": "gcc -O2 -s -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot"
+  },
+  "negatives": [
+    {
+      "input": "AUTH{session_delta_42}",
+      "verdict": "silent_no_marker",
+      "note": "well-formed but wrong; exits 0 with no success marker (silent-validation trap). Differential is the success marker, not the exit code."
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "open_reject",
+      "note": "malformed junk; 'Denied.' + exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "AUTH{session_delta_42}",
+      "kind": "well_formed_silent",
+      "why": "well-formed (same length + AUTH{ wrapper) but wrong; the failing result is stored in a struct and logged nowhere, so STDIN evaluation prints only 'Token accepted for evaluation.' and exits 0 with no grant",
+      "observed": "exit 0, NO 'Access granted.' (silent) — differential is marker-based"
+    }
+  ],
+  "_artifacts_note": "authored Week 8 expansion; negatives/decoys empirically verified no-API 2026-07-07. difficulty/role deferred to calibration (design-intent, unmeasured)."
+}

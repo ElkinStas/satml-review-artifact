@@ -1,0 +1,28 @@
+# ============================================================================
+# PINNED analysis + SDK stack for the rerag-re image.
+#
+# WHY: an unpinned name ("angr") makes pip install whatever is latest AT BUILD
+# TIME, so every rebuild can produce a different image digest and a different
+# disassembler. That is what happened across three rebuilds here (angr 9.3.0 /
+# 9.3.2 / 9.3.3). Pinning is what makes `docker build` reproducible.
+#
+# IMPORTANT: capstone is NOT pinned independently -- angr pins it exactly itself
+# (angr 9.3.2 requires capstone==5.0.9). Pinning both by hand is how the earlier
+# build broke: angr==9.3.2 + capstone==5.0.6 is an unsatisfiable pair.
+#
+# Versions below are the resolved set for angr 9.3.2, verified with
+# `pip install --dry-run`. To move a version: change it here, rebuild, then
+# `python -m agent.pin_environment --regenerate`.
+# ============================================================================
+
+anthropic==0.120.0
+# Second model family (agent/policy_openai.py). Pinned for the same reason as everything
+# else here: an unpinned SDK can change request shaping between runs of the same study.
+openai==3.8.0
+
+angr==9.3.2
+capstone==5.0.9
+pwntools==4.15.0
+z3-solver==4.13.0.0
+lief==1.0.0
+pyelftools==0.33

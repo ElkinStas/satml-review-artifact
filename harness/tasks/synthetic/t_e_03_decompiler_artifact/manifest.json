@@ -1,0 +1,33 @@
+{
+  "task_id": "t_e_03_decompiler_artifact",
+  "stratum": "synthetic",
+  "archetype": "T-E",
+  "mechanism_variant": "junk_byte_desync",
+  "template_group": "TE-desync",
+  "target_w2_subtype": "decompiler_artifact_trust",
+  "card_families_in_scope": "decompiler_artifact",
+  "trap_note": "Anti-disassembly desync (variant of #01): a junk byte (0x3C) after an unconditional jump makes a linear-sweep disassembler mis-decode the following bytes and sw",
+  "binary": "binary/decompiler_artifact3",
+  "binary_sha256": "5a9962368898c8359b4cee8bdd72fd770ec8b11e83784db54be821989646187e",
+  "binary_size_bytes": 14504,
+  "input_method": "argv",
+  "compile": "gcc -O2 -s -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot"
+  },
+  "negatives": [
+    {
+      "input": "zz_not_a_flag_zz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [],
+  "_artifacts_note": "authored Week 8 expansion; verified no-API 2026-07-07. difficulty/role deferred to calibration.",
+  "decoy_note": "No flag-shaped decoy string (T-E desync): the wrong-attractor is the mis-decoded static disassembly, not a .rodata bait."
+}

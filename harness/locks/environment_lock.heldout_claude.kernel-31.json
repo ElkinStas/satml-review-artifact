@@ -1,0 +1,27 @@
+{
+  "_regenerate_in_target_image": false,
+  "python": "3.12.3",
+  "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.39",
+  "image_digest": "sha256:67aebd9ba58564d5b083935cc3fdc3a90083e5e87ede150e2034d87b52d850ee",
+  "packages": {
+    "anthropic": "0.120.0",
+    "angr": "9.3.2",
+    "capstone": "5.0.9",
+    "z3": "NOT-INSTALLED",
+    "z3-solver": "4.13.0.0",
+    "pwntools": "4.15.0",
+    "unicorn": "2.1.2",
+    "ropper": "NOT-INSTALLED"
+  },
+  "executables": {
+    "bwrap": "bubblewrap 0.9.0",
+    "radare2": "radare2 5.5.0 0 @ linux-x86-64 git.5.5.0",
+    "gdb": "GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1",
+    "strace": "strace -- version 6.8",
+    "ltrace": "ltrace version 0.7.3.",
+    "gcc": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "ld": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+    "objdump": "GNU objdump (GNU Binutils for Ubuntu) 2.42",
+    "python3": "Python 3.12.3"
+  }
+}

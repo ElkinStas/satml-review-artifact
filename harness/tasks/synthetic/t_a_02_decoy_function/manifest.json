@@ -1,0 +1,45 @@
+{
+  "task_id": "t_a_02_decoy_function",
+  "stratum": "synthetic",
+  "archetype": "T-A",
+  "mechanism_variant": "dead_function_decoy",
+  "template_group": "TA-dead-function",
+  "target_w2_subtype": "decoy_accepted",
+  "card_families_in_scope": "decoy_dead_function",
+  "trap_note": "validator-shaped function reachable only via an orphan caller",
+  "binary": "binary/decoy_function",
+  "binary_sha256": "b7eed2713c77e92bf7897ca80db1c0daff7937bf9ede5d1ad391102831d3a4aa",
+  "binary_size_bytes": 14512,
+  "input_method": "argv",
+  "compile": "gcc -O2 -s -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot (Weeks 6-7)"
+  },
+  "_note": "Calibration fields filled at the pilot. binary_sha256 is the version fingerprint for reproducibility.",
+  "negatives": [
+    {
+      "input": "LIC-4402-8830",
+      "verdict": "reject",
+      "note": "dead_function: exit 1, no success marker"
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "LIC-44026-8830",
+      "kind": "dead_function",
+      "why": "held by validate_license(), which has no caller; never reached at runtime",
+      "observed": "exit 1, no success marker"
+    }
+  ],
+  "_artifacts_note": "negatives/decoys empirically verified no-API on 2026-07-07; see notes_for_audit.md and check_task_consistency.py."
+}

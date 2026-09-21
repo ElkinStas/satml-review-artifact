@@ -1,0 +1,13 @@
+submit_candidate is gated, and the gate reads your DERIVATION, not your prose.
+
+A submission is BLOCKED unless both hold:
+  - the value you submit was RECONSTRUCTED from what the program computes -- by inverting its
+    transform, solving its constraint, or emulating its checker. A value you simply found written
+    somewhere and carried over does not qualify, however plausible it looks and even if it turns
+    out to be right; AND
+  - a record_validation names this exact candidate and cites (source_step_idx) the earlier analysis
+    step that produced it.
+
+The gate never learns whether your answer is correct, and neither do you: it checks only that a
+derivation exists. Correct work that leads to a wrong answer passes; a right answer with no working
+does not. Blocking is automatic and the error names exactly what is missing.

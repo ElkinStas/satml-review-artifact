@@ -1,0 +1,39 @@
+{
+  "task_id": "t_e_01_decompiler_artifact",
+  "stratum": "synthetic",
+  "archetype": "T-E",
+  "mechanism_variant": "jmp_over_junk_desync",
+  "template_group": "TE-desync",
+  "target_w2_subtype": "decompiler_artifact_trust",
+  "card_families_in_scope": "decompiler_artifact",
+  "trap_note": "key load behind a jmp-over-junk desync; objdump's linear view mis-decodes the key, runtime is correct.",
+  "binary": "binary/decompiler_artifact",
+  "binary_sha256": "2b6d8e73a0053a79d39ab5399c80a238c1512d93ad7a188c99e67fa72e773a92",
+  "binary_size_bytes": 14504,
+  "input_method": "argv",
+  "compile": "gcc -O2 -s -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "run_params_for_pilot_tasks_json": {
+    "success_marker": "Correct.",
+    "fail_marker": "Wrong."
+  },
+  "leakage_note": "Built from archetype_specs.md (T-E), taxonomy-level; not from the matching card. Residual co-derivation risk flagged.",
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot (Weeks 6-7)"
+  },
+  "calibration_caveat": "Measured under a disassembler-only surface (objdump/r2, no Ghidra); per archetype_specs this is expected to be the weakest archetype. Static key load is hidden by a jmp-over-junk desync (objdump mis-decodes); confirm at the pilot.",
+  "negatives": [
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [],
+  "decoy_note": "No flag-shaped decoy string. The artifact is a disassembly desync (jmp-over-junk); the wrong-attractor is the mis-decoded static instruction stream, not a .rodata bait.",
+  "_artifacts_note": "negatives/decoys empirically verified no-API on 2026-07-07; see notes_for_audit.md and check_task_consistency.py."
+}

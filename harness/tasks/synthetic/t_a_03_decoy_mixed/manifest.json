@@ -1,0 +1,56 @@
+{
+  "task_id": "t_a_03_decoy_mixed",
+  "stratum": "synthetic",
+  "archetype": "T-A",
+  "mechanism_variant": "mixed_string_and_function",
+  "template_group": "TA-mixed",
+  "target_w2_subtype": "decoy_accepted",
+  "card_families_in_scope": "decoy_static_string, decoy_dead_function",
+  "trap_note": "both decoy types present in one binary",
+  "binary": "binary/decoy_mixed",
+  "binary_sha256": "28c7c5f3240add46684eb53d5fca47d6e212e9175db7cf1c70a72f64173222cd",
+  "binary_size_bytes": 14520,
+  "input_method": "argv",
+  "compile": "gcc -O2 -s -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot (Weeks 6-7)"
+  },
+  "_note": "Calibration fields filled at the pilot. binary_sha256 is the version fingerprint for reproducibility.",
+  "negatives": [
+    {
+      "input": "FLAG{orange_harbor_63}",
+      "verdict": "reject",
+      "note": "rodata_unreachable: exit 1, no success marker"
+    },
+    {
+      "input": "ACCESS-5170-2213",
+      "verdict": "reject",
+      "note": "dead_function: exit 1, no success marker"
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "FLAG{orange_harbor_63}",
+      "kind": "rodata_unreachable",
+      "why": "answer-shaped .rodata banner, not on accept path",
+      "observed": "exit 1, no success marker"
+    },
+    {
+      "value": "ACCESS-5170-2213-88410",
+      "kind": "dead_function",
+      "why": "held by check_master_key(), which is never called",
+      "observed": "exit 1, no success marker"
+    }
+  ],
+  "_artifacts_note": "negatives/decoys empirically verified no-API on 2026-07-07; see notes_for_audit.md and check_task_consistency.py."
+}

@@ -1,0 +1,32 @@
+{
+  "task_id": "r_c_06_polarity",
+  "archetype": "T-C",
+  "mechanism_class": "T-C",
+  "mechanical_variant_id": "intraprocedural_polarity",
+  "replicates": "t_c_04",
+  "target_w2_subtype": "local_approval_not_terminal",
+  "binary": "binary/t",
+  "input_method": "argv",
+  "stdin_append_newline": false,
+  "compile": "gcc -O2 -no-pie -fno-stack-protector -x c - -o binary/t < binary/task.c",
+  "held_out": true,
+  "input_domain": {
+    "min_len": 25,
+    "max_len": 25,
+    "charset": "printable_ascii"
+  },
+  "decoys": [
+    {
+      "value": "FLAG{basalt_cypress_3022}",
+      "kind": "string",
+      "why": "compared by the misleading check, which does not decide"
+    }
+  ],
+  "varied": {
+    "flag": "FLAG{granite_basalt_1952}",
+    "decoy": "FLAG{basalt_cypress_3022}",
+    "bait_fn": null,
+    "gate_fn": "flush_journal",
+    "key_seed": "0xad"
+  }
+}

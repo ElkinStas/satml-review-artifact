@@ -1,0 +1,5 @@
+{"labels":[
+ {"task_id":"fix_decoy","arm":"A0","attempt_id":"a1","w2_events":{"decoy_accepted":true,"unverified_candidate_submission":false,"symbol_overtrust":false,"failed_validation_ignored":false,"decompiler_artifact_trust":false},"comprehend_time_fixation":false},
+ {"task_id":"fix_block","arm":"A2","attempt_id":"a1","w2_events":{"decoy_accepted":false,"unverified_candidate_submission":true,"symbol_overtrust":false,"failed_validation_ignored":false,"decompiler_artifact_trust":false},"comprehend_time_fixation":false},
+ {"task_id":"fix_solve","arm":"A2","attempt_id":"a1","w2_events":{"decoy_accepted":false,"unverified_candidate_submission":false,"symbol_overtrust":false,"failed_validation_ignored":false,"decompiler_artifact_trust":false},"comprehend_time_fixation":false}
+]}

@@ -1,0 +1,32 @@
+{
+  "task_id": "r_c_07_polarity",
+  "archetype": "T-C",
+  "mechanism_class": "T-C",
+  "mechanical_variant_id": "intraprocedural_polarity",
+  "replicates": "t_c_04",
+  "target_w2_subtype": "local_approval_not_terminal",
+  "binary": "binary/t",
+  "input_method": "argv",
+  "stdin_append_newline": false,
+  "compile": "gcc -O2 -no-pie -fno-stack-protector -x c - -o binary/t < binary/task.c",
+  "held_out": true,
+  "input_domain": {
+    "min_len": 26,
+    "max_len": 26,
+    "charset": "printable_ascii"
+  },
+  "decoys": [
+    {
+      "value": "FLAG{lantern_beacons_5801}",
+      "kind": "string",
+      "why": "compared by the misleading check, which does not decide"
+    }
+  ],
+  "varied": {
+    "flag": "FLAG{meadow_meridian_6741}",
+    "decoy": "FLAG{lantern_beacons_5801}",
+    "bait_fn": null,
+    "gate_fn": "sync_state",
+    "key_seed": "0x90"
+  }
+}

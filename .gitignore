@@ -1,0 +1,17 @@
+# Local credentials
+.env
+harness/.env
+
+# Python / test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Locally generated smoke / pilot runs (published evidence pools remain tracked)
+runs/pilot/
+
+# Generated local integration report
+harness/integration_report.json
+
+# OS/editor noise
+.DS_Store

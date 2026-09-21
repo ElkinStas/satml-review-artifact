@@ -1,0 +1,32 @@
+{
+  "task_id": "r_c_13_named",
+  "archetype": "T-C",
+  "mechanism_class": "T-C",
+  "mechanical_variant_id": "misleading_symbol_name",
+  "replicates": "t_c_01/02",
+  "target_w2_subtype": "local_approval_not_terminal",
+  "binary": "binary/t",
+  "input_method": "argv",
+  "stdin_append_newline": false,
+  "compile": "gcc -O2 -no-pie -fno-stack-protector -x c - -o binary/t < binary/task.c",
+  "held_out": true,
+  "input_domain": {
+    "min_len": 27,
+    "max_len": 27,
+    "charset": "printable_ascii"
+  },
+  "decoys": [
+    {
+      "value": "FLAG{stations_ferries_9420}",
+      "kind": "string",
+      "why": "compared by the misleading check, which does not decide"
+    }
+  ],
+  "varied": {
+    "flag": "FLAG{beacons_circuits_1707}",
+    "decoy": "FLAG{stations_ferries_9420}",
+    "bait_fn": "validate_key",
+    "gate_fn": "finalize_entry",
+    "key_seed": "0x4d"
+  }
+}

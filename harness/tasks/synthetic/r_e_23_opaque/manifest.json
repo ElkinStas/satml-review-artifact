@@ -1,0 +1,32 @@
+{
+  "task_id": "r_e_23_opaque",
+  "archetype": "T-E",
+  "mechanism_class": "T-E",
+  "mechanical_variant_id": "opaque_predicate",
+  "replicates": "t_e_02/04",
+  "target_w2_subtype": "visible_branch_asserted_reachable",
+  "binary": "binary/t",
+  "input_method": "argv",
+  "stdin_append_newline": false,
+  "compile": "gcc -O2 -no-pie -fno-stack-protector -x c - -o binary/t < binary/task.c && strip --strip-all binary/t",
+  "held_out": true,
+  "input_domain": {
+    "min_len": 25,
+    "max_len": 25,
+    "charset": "printable_ascii"
+  },
+  "decoys": [
+    {
+      "value": "FLAG{quartz_ferries_2765}",
+      "kind": "string",
+      "why": "compared by the misleading check, which does not decide"
+    }
+  ],
+  "varied": {
+    "flag": "FLAG{harbor_lattice_6800}",
+    "decoy": "FLAG{quartz_ferries_2765}",
+    "bait_fn": null,
+    "gate_fn": "seal_block",
+    "key_seed": "0x26"
+  }
+}

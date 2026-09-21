@@ -1,0 +1,234 @@
+{
+  "schema_version": "0.2",
+  "status": "draft",
+  "frozen_at": null,
+  "manifest_hash_sha256": null,
+  "_strata": [
+    "overlap -- tasks overlapping Nishizaka et al. (BAR 2026) Table I; head-to-head replication anchor.",
+    "fresh   -- tasks from 2026 CTF events, NOT in Nishizaka; leakage / external-validity control. Populated Week 3.",
+    "synthetic -- Track A archetypes, designed per W2 subtype. Populated Weeks 3-10."
+  ],
+  "_verification_protocol": [
+    "Tier 1 (cheap, no write-up): Linux x86-64 ELF; file size matches paper Table VI within tolerance; input method matches. Catches the during-CTF vs post-CTF version mismatch.",
+    "Tier 2 (Docker): binary runs in the evaluation container and reaches its verification logic.",
+    "Tier 3 (Docker + write-up): the known-good solution reproduces -- this is 'harness-verified' for the Definition of Done.",
+    "tasks/verify.py implements Tier 1 + the run primitive; Tier 2/3 are run per task in the user's Docker environment."
+  ],
+  "real": {
+    "overlap_subset": {
+      "count": 7,
+      "_role_legend": {
+        "w2_anchor": "shows W2 in Nishizaka Table I; primary head-to-head comparison point.",
+        "capability_floor": "solved fast by all Nishizaka settings; A2 must not regress here.",
+        "negative_control": "fails for non-W2 reasons; if A2 'fixes' it, the effect is not W2-specific.",
+        "secondary_control": "additional non-W2 task; weakened rationale, see _notes."
+      },
+      "tasks": [
+        {
+          "task_id": "ovl_10_cycle_of_hatred",
+          "paper_task_id": 10,
+          "challenge": "Cycle of hatred",
+          "ctf_event": "ASIS CTF Quals 2025",
+          "role": "w2_anchor",
+          "nishizaka_w2": "3 of 5 agent settings",
+          "expected_w2_subtypes": [
+            "unverified_candidate_submission"
+          ],
+          "verification_reference": {
+            "file_format": "elf_x86_64",
+            "ref_file_size": "18.6KB",
+            "input_method": "stdin",
+            "verification_type": "computation_constraint"
+          },
+          "source": "sajjadium/ctf-archives mirror (ASIS CTF Quals 2025)",
+          "provenance_url": "https://github.com/sajjadium/ctf-archives/tree/main/ctfs/ASIS/2025/Quals/rev/Cycle_of_hatred",
+          "sha256": "cca7aef8948f7d41709d070bcbd56d6bba825ebbab96715287ff43ebe4d037c1",
+          "license": null,
+          "ground_truth_present": false,
+          "tier1_status": "pass",
+          "tier3_status": "pending",
+          "tier2_status": "pass",
+          "task_status": "obtained",
+          "drop_reason": null
+        },
+        {
+          "task_id": "ovl_11_jormugandr",
+          "paper_task_id": 11,
+          "challenge": "Jormugandr",
+          "ctf_event": "KalmarCTF 2025",
+          "role": "w2_anchor",
+          "nishizaka_w2": "1 of 5 agent settings (marginal)",
+          "expected_w2_subtypes": [
+            "decoy_accepted",
+            "decompiler_artifact_trust"
+          ],
+          "verification_reference": {
+            "file_format": "elf_x86_64",
+            "ref_file_size": "18KB",
+            "input_method": "argv",
+            "verification_type": "encode_then_compare"
+          },
+          "source": "kalmarunionenctf/kalmarctf (official) + sajjadium mirror",
+          "provenance_url": null,
+          "sha256": null,
+          "license": null,
+          "ground_truth_present": false,
+          "tier1_status": "pending",
+          "tier3_status": "pending",
+          "tier2_status": "pending",
+          "task_status": "pending",
+          "drop_reason": null
+        },
+        {
+          "task_id": "ovl_12_1zwasm",
+          "paper_task_id": 12,
+          "challenge": "1Zwasm",
+          "ctf_event": "0CTF 2025",
+          "role": "w2_anchor",
+          "nishizaka_w2": "5 of 5 agent settings (strongest)",
+          "expected_w2_subtypes": [
+            "symbol_overtrust"
+          ],
+          "verification_reference": {
+            "file_format": "elf_x86_64",
+            "ref_file_size": "176KB",
+            "input_method": "stdin",
+            "verification_type": "encode_then_compare",
+            "_note": "WebAssembly challenge executed by a modified WASM runtime; the runtime binary is the ELF. wabt/wasmtime needed."
+          },
+          "source": "0ops/ctfs (official) + sajjadium mirror",
+          "provenance_url": "https://github.com/sajjadium/ctf-archives/tree/main/ctfs/0CTF/2025/rev/1Zwasm",
+          "sha256": "fa6de5d0541364f1796cf302653a97000fd8d0c0ac620c95cad439097a5db763",
+          "license": null,
+          "ground_truth_present": false,
+          "tier1_status": "pass",
+          "tier3_status": "pending",
+          "tier2_status": "pass",
+          "task_status": "obtained",
+          "drop_reason": null
+        },
+        {
+          "task_id": "ovl_13_gatta",
+          "paper_task_id": 13,
+          "challenge": "GATTA",
+          "ctf_event": "Hack.lu CTF 2025",
+          "role": "w2_anchor",
+          "nishizaka_w2": "4 of 5 agent settings",
+          "expected_w2_subtypes": [
+            "symbol_overtrust"
+          ],
+          "verification_reference": {
+            "file_format": "elf_x86_64",
+            "ref_file_size": "1.46MB",
+            "input_method": "argv",
+            "verification_type": "encode_then_compare",
+            "_note": "Go binary; expect a large symbol table and Go runtime noise."
+          },
+          "source": "sajjadium/ctf-archives mirror (Hack.lu CTF 2025)",
+          "provenance_url": "https://github.com/sajjadium/ctf-archives/tree/main/ctfs/Hack.lu/2025/rev/GATTA",
+          "sha256": "848ac08db2666401ac9ba6132784b3d332665e77977b097075162a335d618fd8",
+          "license": null,
+          "ground_truth_present": false,
+          "tier1_status": "pass",
+          "tier3_status": "pending",
+          "tier2_status": "pass",
+          "task_status": "obtained",
+          "drop_reason": null
+        },
+        {
+          "task_id": "ovl_19_constructor",
+          "paper_task_id": 19,
+          "challenge": "constructor",
+          "ctf_event": "idekCTF 2025",
+          "role": "capability_floor",
+          "nishizaka_w2": "none (solved by all settings, 1-6 min)",
+          "expected_w2_subtypes": [],
+          "verification_reference": {
+            "file_format": "elf_x86_64",
+            "ref_file_size": "17.8KB",
+            "input_method": "argv",
+            "verification_type": "encode_then_compare"
+          },
+          "source": "sajjadium/ctf-archives mirror (idekCTF 2025)",
+          "provenance_url": null,
+          "sha256": null,
+          "license": null,
+          "ground_truth_present": false,
+          "tier1_status": "pending",
+          "tier3_status": "pending",
+          "tier2_status": "pending",
+          "task_status": "pending",
+          "drop_reason": null
+        },
+        {
+          "task_id": "ovl_22_dop",
+          "paper_task_id": 22,
+          "challenge": "DOP",
+          "ctf_event": "CyKor CTF 2025",
+          "role": "negative_control",
+          "nishizaka_w2": "none (fails via W1, W4)",
+          "expected_w2_subtypes": [],
+          "verification_reference": {
+            "file_format": "elf_x86_64",
+            "ref_file_size": "340KB",
+            "input_method": "stdin",
+            "verification_type": "encode_then_compare"
+          },
+          "source": "sajjadium/ctf-archives mirror (CyKor CTF 2025)",
+          "provenance_url": "https://github.com/sajjadium/ctf-archives/tree/main/ctfs/CyKor/2025/rev/DOP",
+          "sha256": "b8b562b3bc4beb68bbf6ef799452785dd7e65af45d5f20a6a60ea28f9979faab",
+          "license": null,
+          "ground_truth_present": false,
+          "tier1_status": "pass",
+          "tier3_status": "pending",
+          "tier2_status": "pass",
+          "task_status": "obtained",
+          "drop_reason": null
+        },
+        {
+          "task_id": "ovl_23_ex_cute",
+          "paper_task_id": 23,
+          "challenge": "ex-cute",
+          "ctf_event": "CyKor CTF 2025",
+          "role": "secondary_control",
+          "nishizaka_w2": "none (fails via W1, W4)",
+          "expected_w2_subtypes": [],
+          "verification_reference": {
+            "file_format": "elf_x86_64",
+            "ref_file_size": "2.34MB",
+            "input_method": "stdin",
+            "verification_type": "encode_then_compare",
+            "_note": "C++ with exception-based control flow; dynamic-link sensitivity, check ldd early."
+          },
+          "source": "sajjadium/ctf-archives mirror (CyKor CTF 2025)",
+          "provenance_url": "https://github.com/sajjadium/ctf-archives/tree/main/ctfs/CyKor/2025/rev/ex_cute",
+          "sha256": "f0e136e668c23515bd9f0b9afdc99af646928b8621ed2bbb86d228860330487e",
+          "license": null,
+          "ground_truth_present": false,
+          "tier1_status": "pass",
+          "tier3_status": "pending",
+          "tier2_status": "pass",
+          "task_status": "obtained",
+          "drop_reason": null
+        }
+      ]
+    },
+    "fresh_subset": {
+      "count": 0,
+      "_note": "2026-CTF leakage-control stratum. Findability pass + selection in Week 3. Target >= 4 verified tasks; crackmes.one fallback (difficulty >= 3.0, quality >= 4.0) if short.",
+      "tasks": []
+    }
+  },
+  "synthetic": {
+    "_note": "Track A archetypes. Designed one per W2 subtype; populated Weeks 3-10.",
+    "count": 0,
+    "tasks": []
+  },
+  "_notes": [
+    "Per-task fields: task_id, paper_task_id, challenge, ctf_event, role, nishizaka_w2, expected_w2_subtypes, verification_reference, source, provenance_url, sha256, license, ground_truth_present, tier1_status, tier3_status.",
+    "v0 = list locked + paper-reference metadata filled. sha256 / provenance_url / ground_truth_present / tier statuses are populated as each binary is obtained and verified.",
+    "expected_w2_subtypes for the 4 anchors is a provisional mapping onto the project's 5 W2 subtypes; failed_validation_ignored is not represented by any real task and must be covered by Track A.",
+    "Top-level file hashed at the Week 11 artifact lock.",
+    "#23 ex-cute is kept as a second non-W2 control; its original decompiler-effect rationale is weakened because the project excludes Ghidra. First candidate to drop if Track B scope tightens."
+  ]
+}

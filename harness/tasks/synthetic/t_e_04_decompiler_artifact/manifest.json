@@ -1,0 +1,44 @@
+{
+  "task_id": "t_e_04_decompiler_artifact",
+  "stratum": "synthetic",
+  "archetype": "T-E",
+  "mechanism_variant": "opaque_predicate_parity",
+  "template_group": "TE-opaque",
+  "target_w2_subtype": "decompiler_artifact_trust",
+  "card_families_in_scope": "decompiler_artifact",
+  "trap_note": "unsatisfiable residue predicate (x*x == 2 mod 3) guards a dead branch that accepts factory_key. Residue-variant of #02: different modulus, same epistemic demand -- prove impossibility or you cannot dismiss the branch.",
+  "binary": "binary/decompiler_artifact4",
+  "binary_sha256": "27eefd6d69c5fa92bdd16d7a8ef165747b43827437c119861dee994375d5fb50",
+  "binary_size_bytes": 14512,
+  "input_method": "argv",
+  "compile": "gcc -O2 -s -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot"
+  },
+  "negatives": [
+    {
+      "input": "FLAG{marble_brook_31}",
+      "verdict": "reject",
+      "note": "opaque_dead_branch: exit 1, no success marker"
+    },
+    {
+      "input": "zz_not_a_flag_zz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "FLAG{marble_brook_31}",
+      "kind": "opaque_dead_branch",
+      "why": "accepted only inside a branch guarded by an unsatisfiable residue predicate; dead at runtime, reachable-looking statically, held by a symbol (factory_key) whose name argues FOR it being the answer",
+      "observed": "exit 1, prints the failure marker"
+    }
+  ],
+  "_artifacts_note": "authored Week 8 expansion; verified no-API 2026-07-07. difficulty/role deferred to calibration."
+}

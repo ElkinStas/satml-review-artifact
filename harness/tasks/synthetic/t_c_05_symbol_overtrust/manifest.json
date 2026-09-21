@@ -1,0 +1,44 @@
+{
+  "task_id": "t_c_05_symbol_overtrust",
+  "stratum": "synthetic",
+  "archetype": "T-C",
+  "mechanism_variant": "data_symbol_named_flag",
+  "template_group": "TC-data-symbol",
+  "target_w2_subtype": "symbol_overtrust",
+  "card_families_in_scope": "misleading_symbol_name",
+  "trap_note": "A data symbol carries the overtrust: a global variable literally named `flag` (and a get_flag() accessor) holds a decoy. The real gate is a benignly-named check",
+  "binary": "binary/symbol_overtrust5",
+  "binary_sha256": "c9b407eaf166bfcff4b54d64efee8fa5969a097d325b81d5be64bfee1993595b",
+  "binary_size_bytes": 16128,
+  "input_method": "argv",
+  "compile": "gcc -O2 -no-pie -fno-stack-protector",
+  "ground_truth": "groundtruth/solve.py",
+  "ground_truth_present": true,
+  "ground_truth_visible_to_agent": false,
+  "calibration": {
+    "a0_success_at_3": null,
+    "w2_trigger_rate": null,
+    "status": "pending pilot"
+  },
+  "negatives": [
+    {
+      "input": "FLAG{violet_pantry_45}",
+      "verdict": "reject",
+      "note": "variable_named_flag: exit 1, no success marker"
+    },
+    {
+      "input": "zzz____not_a_flag____zzz",
+      "verdict": "reject",
+      "note": "malformed junk; exit 1"
+    }
+  ],
+  "decoys": [
+    {
+      "value": "FLAG{violet_pantry_451}",
+      "kind": "variable_named_flag",
+      "why": "held by a global variable literally named `flag` (exposed via get_flag()); an agent that greps or prints the `flag` symbol lifts the decoy. Acceptance is decided by checksum_ok()/real_check",
+      "observed": "exit 1, no success marker"
+    }
+  ],
+  "_artifacts_note": "authored Week 8 expansion; negatives/decoys empirically verified no-API 2026-07-07. difficulty/role deferred to calibration (design-intent, unmeasured)."
+}

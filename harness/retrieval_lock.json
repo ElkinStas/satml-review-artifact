@@ -1,0 +1,51 @@
+{
+  "_comment": "Frozen retrieval configuration for main runs. Verified by agent/test_retrieval.py (lock checks below fail the run on drift). Sits alongside the prereg artifact lock; cite in prereg v0.9.",
+  "lock_version": "1",
+  "status": "candidate-frozen: guards the registered 25-card library cards/cards_v1.0.json (byte-hash below); re-locked at the W10/W10b advice re-issue (static-only validation advice; no cards added, none fitted to a task). Formal v1.0/pre-main lock pending.",
+  "retrieval_backend": "bm25",
+  "bm25_k1": 1.5,
+  "bm25_b": 0.75,
+  "keyword_weight": 3,
+  "top_k": 3,
+  "dense_rerank": null,
+  "retrieval_algorithm_version": "2",
+  "retrieval_py_sha256": "b1a32c9c8e24a9637606e9a868c5ce575715566535513acef84ff2f32bd050bb",
+  "retrieval_policy_version": "2",
+  "retrieval_policy_method_sha256": "b121e98355546934cec6292897e32f25f7444478ee6811429fc522558b75fc18",
+  "card_library_path": "cards/cards_v1.0.json",
+  "card_library_sha256": "4f060500b4d7419d5555065ea2e7d77eaeee90f23e72364c7ede57af66dd603b",
+  "card_count": 25,
+  "query_source": "latest_hypothesis_text; empty (before the first hypothesis) returns [] -- retrieval is hypothesis-keyed, no first-k surface",
+  "query_note": "MVP query construction is the latest hypothesis text only (agent/policy.py). The richer state-to-query template of prereg §5.4 (recent observations + candidate strings + runtime results + uncertainty) is future richer retrieval, NOT in the MVP; this is recorded in prereg §5.4 (v0.7).",
+  "trigger_policy": "per_step, A1 and A2 (observation-keyed; per-step retrieved_cards recorded in the trace)",
+  "regression_vectors": {
+    "xor transform compare visible constant": [
+      "c_transform_xor_encode_compare",
+      "c_transform_visible_constant_is_target",
+      "c_transform_shift_rotate_compare"
+    ],
+    "flag shaped string rodata no xref": [
+      "c_decoy_string_no_accept_xref",
+      "c_decoy_string_among_candidates",
+      "c_dead_function_no_call_site"
+    ],
+    "silent validation wrong input no output baseline": [
+      "c_silentval_silent_output_assumed_pass",
+      "c_silentval_rejection_ignored",
+      "c_silentval_no_differential_established"
+    ],
+    "misleading symbol name check flag function": [
+      "c_symbol_misleading_function_name",
+      "c_symbol_variable_name_semantics",
+      "c_symbol_debug_metadata_trust"
+    ],
+    "linear sweep anti disasm junk bytes opaque": [
+      "c_decompiler_disasm_desync",
+      "c_decompiler_data_as_code",
+      "c_decompiler_opaque_predicate_reachable"
+    ]
+  },
+  "_regression_note": "query -> ordered top-3 card_ids on the locked library. Recompute ONLY when a retrieval algorithm change or an intended LIBRARY change is made; otherwise a diff here means unintended ranker drift. W10/W10b recompute (intended, advice-field edit): 5 of the 6 vectors are byte-identical with the 2026-07-06 lock; 'silent validation wrong input no output baseline' permuted within the same three silent_validation_failure cards, whose text was re-scoped to the static reading. W10c: the comprehend_time_fixation vector was REMOVED with its family; the remaining five are unchanged from this session's recompute.",
+  "_policy_note": "retrieval_policy_method_sha256 hashes ClaudePolicy._retrieve_for_step (query = latest hypothesis; inject-on-ID-change). Bump retrieval_policy_version when the retrieval trigger/query/reinjection policy changes.",
+  "_w10_note": "retrieval_py_sha256 and retrieval_policy_method_sha256 are UNCHANGED: W10 edited the card library only, not the ranker or the retrieval trigger/query policy. retrieval_algorithm_version and retrieval_policy_version therefore stay at 2."
+}
