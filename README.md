@@ -109,7 +109,7 @@ harness/
   run_pilot.py         entry point for a new agent run
   pilot_tasks.json     registered task/run parameters
   requirements-pilot.txt
-prereg/               preregistration notes + deviation registry
+prereg/               deviation registry referenced by the paper
 runs/                 curated, de-duplicated recorded trajectories used by the paper
   dev_synthetic/
   heldout_claude/
@@ -117,14 +117,13 @@ runs/                 curated, de-duplicated recorded trajectories used by the p
   dev_real/            exploratory public-task traces
 ```
 
-Fresh runs use `runs/pilot/` by default; that path is git-ignored. The four evidence directories
-listed above are committed and are the inputs to `analysis/recompute_all.py`.
+Fresh runs use `harness/runs/pilot/` by default when following the container instructions below; that path is git-ignored. The four evidence directories listed above are committed and are the inputs to `analysis/recompute_all.py`.
 
 ---
 
 # Running it
 
-Everything below assumes you are in the repository root.
+Unless stated otherwise, commands start in the repository root. The fresh-run container is started with `/repo/harness` as its working directory; the deterministic recomputation commands run from `/repo` (the repository root).
 
 ## 0. Prerequisites
 
@@ -143,22 +142,20 @@ The image digest is not baked in at build time — that would be circular, since
 changes the digest. You build, then read the id back out and pass it in at run time.
 
 ```bash
-docker build -t rerag-re:satml -f harness/agent/docker/Dockerfile .
+docker build -t rerag-re:satml -f harness/agent/docker/Dockerfile harness
 IMG=$(docker image inspect --format='{{.Id}}' rerag-re:satml)
 echo "$IMG"     # sha256:...
 ```
 
-The SDKs and the whole analysis stack (angr, capstone, pwntools, z3, lief, pyelftools) are pinned
-with `==` in `requirements-pilot.txt` and baked into the image. Do **not** `pip install` into a
-running container — that breaks the environment pin and the preflight gate will catch it.
+The SDKs and the whole analysis stack (angr, capstone, pwntools, z3, lief, pyelftools) are pinned with `==` in `harness/requirements-pilot.txt` and baked into the image. Do **not** `pip install` into a running container — that breaks the environment pin and the preflight gate will catch it.
 
 ## 2. Configure credentials
 
 ```bash
-cp .env.example .env
+cp harness/.env.example harness/.env
 ```
 
-Then edit `.env`. You need the key for the policy you are actually going to run, plus `PILOT_MODEL`:
+Then edit `harness/.env`. You need the key for the policy you are actually going to run, plus `PILOT_MODEL`:
 
 | You want to run | Set                                                    |
 |-----------------|--------------------------------------------------------|
@@ -166,7 +163,7 @@ Then edit `.env`. You need the key for the policy you are actually going to run,
 | GPT arm         | `OPENAI_API_KEY=...` and `PILOT_MODEL=gpt-5.2`           |
 
 There is no `--model` flag. The model is read from `PILOT_MODEL`, and `--policy` selects which SDK
-shapes the request. `.env` is git-ignored; never commit it.
+shapes the request. `harness/.env` is git-ignored; never commit it.
 
 ## 3. Start the container
 
@@ -174,8 +171,8 @@ shapes the request. `.env` is git-ignored; never commit it.
 docker run --rm -it \
   --cap-add=SYS_PTRACE \
   -e RERAG_IMAGE_DIGEST="$IMG" \
-  --env-file .env \
-  -v "$PWD":/work -w /work \
+  --env-file harness/.env \
+  -v "$PWD":/repo -w /repo/harness \
   rerag-re:satml bash
 ```
 
@@ -210,7 +207,7 @@ python -m agent.preflight          # -> OK
 confirms the toolchain actually works in-sandbox (file/strings/nm/objdump/readelf/python3, angr/z3/
 capstone import, r2/gdb), that caps and timeouts fire, that background children are reaped, and that
 a missing bwrap or a denied namespace hard-fails instead of degrading silently. A separate
-`isolation_selftest` runs automatically once per `harness/run_pilot.py` invocation: it launches a probe
+`isolation_selftest` runs automatically once per `run_pilot.py` invocation: it launches a probe
 in-sandbox that must **fail** to reach the network, the orchestrator's `/proc` secret, the repo, the
 groundtruth and the pristine target. If any of those is reachable, the run aborts.
 
@@ -222,7 +219,7 @@ The measurements in `runs/heldout_claude/` were produced with
 Start with one task, all three arms, one attempt — this is the cheap smoke test:
 
 ```bash
-python3 harness/run_pilot.py --task r_e_09_opaque --arm all --attempts 1
+python3 run_pilot.py --task r_e_09_opaque --arm all --attempts 1
 ```
 
 What to look for in the console line (`term / steps / subs / blocked / tok`):
@@ -241,18 +238,15 @@ for t in r_c_01_named r_c_02_named r_c_03_named r_c_04_named \
          r_e_09_opaque r_e_10_opaque r_e_11_opaque r_e_12_opaque \
          r_e_17_opaque r_e_18_opaque r_e_19_opaque r_e_20_opaque \
          r_e_21_opaque r_e_22_opaque r_e_23_opaque r_e_24_opaque; do
-  python3 harness/run_pilot.py --task "$t" --arm A0 --attempts 5
-  python3 harness/run_pilot.py --task "$t" --arm A1 --attempts 5
-  python3 harness/run_pilot.py --task "$t" --arm A2 --attempts 5 --strictness 2
+  python3 run_pilot.py --task "$t" --arm A0 --attempts 5
+  python3 run_pilot.py --task "$t" --arm A1 --attempts 5
+  python3 run_pilot.py --task "$t" --arm A2 --attempts 5 --strictness 2
 done
 ```
 
-That is 360 runs. Traces land in `runs/pilot/<task>/<arm>/<attempt>/trace.jsonl`. Existing traces are
-never silently clobbered — `harness/run_pilot.py` fails closed unless you pass `--overwrite`, so the loop is
-resumable: re-running it skips what is already there.
+That is 360 runs. Inside the container, traces land in `runs/pilot/<task>/<arm>/<attempt>/trace.jsonl`; on the host, that is `harness/runs/pilot/<task>/<arm>/<attempt>/trace.jsonl`. Existing traces are never silently clobbered — `run_pilot.py` fails closed unless you pass `--overwrite`, so the loop is resumable: existing slots fail closed while the shell loop continues to later slots.
 
-The dev pool is the same command with the `t_*` task ids; the seven public CTF tasks are the `ovl_*`
-ids and are exploratory only.
+The development pool uses the `t_*` task ids. Six public CTF tasks have recorded exploratory trajectories; their identifiers and SHA-256 records are documented in `tasks/real/README.md`. One additional public-task SHA record is retained for provenance but has no recorded run in the reported exploratory set.
 
 ### Arm-specific flags
 
@@ -273,10 +267,10 @@ Four things differ between the two policies, all of them forced by the APIs rath
 schema shape, how the system prompt is passed, how a tool result is represented, and cache control
 (explicit breakpoints vs automatic prefix caching).
 
-Set `OPENAI_API_KEY` and `PILOT_MODEL=gpt-5.2` in `.env`, then:
+Set `OPENAI_API_KEY` and `PILOT_MODEL=gpt-5.2` in `harness/.env`, then:
 
 ```bash
-python3 harness/run_pilot.py --task r_e_09_opaque --arm A0 --attempts 1 \
+python3 run_pilot.py --task r_e_09_opaque --arm A0 --attempts 1 \
     --policy openai --reasoning-effort medium
 ```
 
@@ -287,9 +281,9 @@ which is what `runs/crossmodel_gpt52/` contains:
 for t in r_e_09_opaque r_e_10_opaque r_e_11_opaque r_e_12_opaque \
          r_e_17_opaque r_e_18_opaque r_e_19_opaque r_e_20_opaque \
          r_e_21_opaque r_e_22_opaque r_e_23_opaque r_e_24_opaque; do
-  python3 harness/run_pilot.py --task "$t" --arm A0 --attempts 5 --policy openai --reasoning-effort medium
-  python3 harness/run_pilot.py --task "$t" --arm A1 --attempts 5 --policy openai --reasoning-effort medium
-  python3 harness/run_pilot.py --task "$t" --arm A2 --attempts 5 --policy openai --reasoning-effort medium \
+  python3 run_pilot.py --task "$t" --arm A0 --attempts 5 --policy openai --reasoning-effort medium
+  python3 run_pilot.py --task "$t" --arm A1 --attempts 5 --policy openai --reasoning-effort medium
+  python3 run_pilot.py --task "$t" --arm A2 --attempts 5 --policy openai --reasoning-effort medium \
       --strictness 2
 done
 ```
@@ -314,24 +308,28 @@ Four things to get right on this path:
 
 ## 7. Score and analyse
 
+Return to the repository root inside the container first:
+
+```bash
+cd /repo
+```
+
 `compute_metrics.py` reads traces and writes the metric tables. Point it at the committed evidence
 set to reproduce the published numbers:
 
 ```bash
 python3 harness/analysis/compute_metrics.py \
     --runs-glob 'runs/heldout_claude/**/trace.jsonl' \
-    --tasks-file pilot_tasks.json \
+    --tasks-file harness/pilot_tasks.json \
     --out results/tables
 
 python3 harness/analysis/bootstrap_ci.py --tables results/tables --n 10000 --seed 0
 python3 figures/make_figs.py
 ```
 
-Swap the glob for `runs/dev_synthetic/**`, `runs/crossmodel_gpt52/**` or
-`runs/dev_real/**` for the other pools. `runs/superseded/**` is kept for provenance
-and must not be aggregated — see `analysis/recompute_all.py` for why each pool there was withdrawn.
+Swap the glob for `runs/dev_synthetic/**`, `runs/crossmodel_gpt52/**` or `runs/dev_real/**` for the other committed pools. For the paper numbers and all provenance-sensitive exclusions, use `analysis/recompute_all.py` as the authoritative recomputation entry point.
 
-To score a run you produced yourself, point the glob at `runs/pilot/**/trace.jsonl`.
+To score a run you produced yourself with the container layout above, point the glob at `harness/runs/pilot/**/trace.jsonl`.
 
 One methodological note that is load-bearing: **de-duplication must compare each trace's
 `binary_sha256`, not just `(task, arm, attempt)`.** An earlier consolidation keyed on the tuple alone
@@ -342,9 +340,10 @@ builds and reported 28.8% where the correct figure is 25.8%.
 
 ## Appendix: running without Docker
 
-Exploratory only. You need the RE CLIs on `PATH` — `file strings readelf objdump nm r2 gdb strace
-ltrace python3` — plus `pip install -r requirements-pilot.txt`, and bubblewrap still has to be
-present or `execution.py` will refuse to start.
+Exploratory only. From the repository root, `cd harness` first. You need the RE CLIs on `PATH` —
+`file strings readelf objdump nm r2 gdb strace ltrace python3` — plus
+`pip install -r requirements-pilot.txt`, and bubblewrap still has to be present or
+`agent/execution.py` will refuse to start.
 
 `--unsandboxed` selects the local no-namespace backend. It is never selected automatically, is never
 a registered backend, and marks its results `sandbox_ok=False`. `--allow-drift` downgrades a
@@ -355,6 +354,7 @@ preflight lock mismatch from fatal to a warning; same caveat.
 Adjudication is strict. A candidate is `accepted` **only** on an exact `known_flag` match or an
 explicit `success_marker`; a present `fail_marker` is `rejected`; anything else is `inconclusive`.
 The absence of a failure is not success — a crash, a usage message or a help string never scores as a
-solve. Of the seven public CTF tasks, six were made scoreable by pulling markers from the binaries;
-they remain exploratory (training-data leakage, and they were inspected during development) and never
-enter the main metric.
+solve. Seven public-task SHA identifiers are retained under `harness/tasks/real/`; six have recorded
+exploratory trajectories and were made scoreable by pulling markers from the binaries. Those six remain
+exploratory (training-data leakage, and they were inspected during development) and never enter the main
+metric.

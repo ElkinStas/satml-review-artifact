@@ -15,3 +15,4 @@ harness/integration_report.json
 
 # OS/editor noise
 .DS_Store
+harness/runs/pilot/
